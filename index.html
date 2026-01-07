@@ -2,8 +2,17 @@
 <html lang="zh-CN">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>同人女模拟器</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <title>同人女模拟器 | 创作、热爱与混沌</title>
+    <meta name="description" content="一款关于同人创作的文字冒险游戏。在热爱与现实的夹缝中，你能坚持多久？" />
+    <meta name="theme-color" content="#f5f2e9" />
+    
+    <!-- Open Graph / Social Media Sharing -->
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="同人女模拟器 | 创作、热爱与混沌" />
+    <meta property="og:description" content="我是为爱发电还是用爱换钱？快来测测你的同人创作运势！" />
+    <meta property="og:site_name" content="同人女模拟器" />
+    
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
     <style>
@@ -22,6 +31,7 @@
         background-image: url("https://www.transparenttextures.com/patterns/cream-paper.png");
         color: var(--ink-primary);
         overflow-x: hidden;
+        -webkit-tap-highlight-color: transparent;
       }
       
       .serif { font-family: 'Noto Serif SC', serif; }
@@ -54,6 +64,9 @@
       }
       .ink-btn:hover::after {
         height: 100%;
+      }
+      .ink-btn:active {
+        transform: scale(0.98);
       }
       
       /* Animations */

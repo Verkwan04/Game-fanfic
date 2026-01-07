@@ -41,8 +41,8 @@ const EventDisplay: React.FC<Props> = ({
     try {
       const canvas = await html2canvas(cardRef.current, {
         scale: 2, // Higher resolution
-        backgroundColor: null, // Transparent bg if possible, or matches component
-        useCORS: true, // For cross-origin images
+        backgroundColor: null, 
+        useCORS: true, 
       });
       const image = canvas.toDataURL("image/png");
       const link = document.createElement("a");
@@ -54,6 +54,17 @@ const EventDisplay: React.FC<Props> = ({
     } finally {
       setIsSaving(false);
     }
+  };
+
+  const handleCopyText = () => {
+    if (!activeFateCard) return;
+    const shareText = `【同人女模拟器】\n我在乱世中达成了结局：${activeFateCard.title}\n----------------\n${activeFateCard.poem}\n----------------\n你是为爱发电还是用爱换钱？快来测测你的同人创作运势！`;
+    
+    navigator.clipboard.writeText(shareText).then(() => {
+      alert("判词已复制到剪贴板！\n快去粘贴分享给朋友吧！");
+    }).catch(() => {
+      console.error("Copy failed");
+    });
   };
 
   return (
@@ -99,7 +110,15 @@ const EventDisplay: React.FC<Props> = ({
 
               {/* Card Actions */}
               {activeFateCard && (
-                 <div className="flex gap-4">
+                 <div className="flex flex-wrap justify-center gap-3 w-full">
+                    <button 
+                      onClick={handleCopyText}
+                      className="px-4 py-2 bg-[#fdfbf7] border border-[#8b1e1e] text-[#8b1e1e] hover:bg-[#fff5f5] rounded-md font-serif text-sm flex items-center gap-2 transition-colors shadow-sm"
+                    >
+                       <span className="material-icons-round text-sm">content_copy</span>
+                       复制判词分享
+                    </button>
+
                     <button 
                       onClick={handleDownloadCard}
                       disabled={isSaving}

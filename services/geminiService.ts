@@ -4,18 +4,32 @@ import { Attributes } from "../types";
 const getClient = () => {
   const apiKey = process.env.API_KEY;
   if (!apiKey) {
-    console.warn("API Key is missing. AI features will be disabled.");
-    return null;
+    return null; // Silent fail, use fallback
   }
   return new GoogleGenAI({ apiKey });
 };
+
+// Fallback comments library for when API is unavailable
+const FALLBACK_COMMENTS = [
+  "大大饿饿饭饭！\n太太神仙下凡！\n虽然有点OOC但还是好香。\n呜呜呜我的CP是真的！\n前排围观大神。",
+  "路过吃瓜。\n不懂就问，这是什么瓜？\n纯路人觉得挺好看的。\n这文笔绝了！\n催更催更！",
+  "kswl！\n民政局搬来了请原地结婚！\n这就是成年人的快乐吗？\n感觉有点危险...\n大大注意安全啊。",
+  "我是来看评论的。\n虽然但是，这不违法吗？\n支持大大！\n黑粉滚粗！\n这就去买本支持！",
+  "太真实了简直世另我。\n呜呜呜刀死我了。\n给太太递笔！\n产粮辛苦了！\n摩多摩多！"
+];
 
 export const generateFanComments = async (
   actionContext: string,
   stats: Attributes
 ): Promise<string> => {
   const ai = getClient();
-  if (!ai) return "模拟评论生成失败：请配置 API Key。";
+  
+  // Use fallback if no AI or for randomness if stats are very low
+  if (!ai) {
+    // Return a random set of fallback comments
+    const randomIndex = Math.floor(Math.random() * FALLBACK_COMMENTS.length);
+    return FALLBACK_COMMENTS[randomIndex];
+  }
 
   const prompt = `
     你是一个负责模拟虚构同人社区（类似贴吧、微博、Ins的混合体）评论区的AI。
@@ -46,10 +60,12 @@ export const generateFanComments = async (
       model: "gemini-3-flash-preview",
       contents: prompt,
     });
-    return response.text || "加载失败...";
+    return response.text || FALLBACK_COMMENTS[0];
   } catch (error) {
-    console.error("Gemini API Error:", error);
-    return "网络连接错误，无法加载评论...";
+    console.warn("AI Generation failed, using fallback:", error);
+    // Return random fallback on error
+    const randomIndex = Math.floor(Math.random() * FALLBACK_COMMENTS.length);
+    return FALLBACK_COMMENTS[randomIndex];
   }
 };
 
@@ -78,7 +94,6 @@ export const generateFateCard = async (
   `;
 
   try {
-    // If we already have the poem, we can skip text generation or ask for image only
     // gemini-2.5-flash-image supports image generation
     const response = await ai.models.generateContent({
       model: "gemini-2.5-flash-image",
@@ -93,7 +108,6 @@ export const generateFateCard = async (
         if (part.inlineData) {
           imageUrl = `data:${part.inlineData.mimeType};base64,${part.inlineData.data}`;
         } else if (part.text && !predefinedPoem) {
-           // Only use generated text if we didn't provide one
            generatedPoem = part.text.trim();
         }
       }
@@ -101,7 +115,7 @@ export const generateFateCard = async (
 
     return { poem: generatedPoem, imageUrl };
   } catch (error) {
-    console.error("Gemini API Error (Fate Card):", error);
+    console.warn("AI Image Generation failed:", error);
     return { 
       poem: predefinedPoem || "运去金成铁，时来铁似金。\n只叹尘缘浅，空留梦中身。", 
       imageUrl: "" 
