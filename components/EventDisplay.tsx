@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
-import { GameEvent, Choice, Attributes } from '../types';
+import { GameEvent, Choice, Attributes, FateCard as FateCardType } from '../types';
 import SocialFeed from './SocialFeed';
+import FateCard from './FateCard';
 
 interface Props {
   event: GameEvent;
@@ -8,9 +9,11 @@ interface Props {
   attributes: Attributes;
   aiComments: string | null;
   loadingAI: boolean;
+  activeFateCard: FateCardType | null;
+  onRestart: () => void; // New prop for correct restart behavior
 }
 
-const EventDisplay: React.FC<Props> = ({ event, onChoice, attributes, aiComments, loadingAI }) => {
+const EventDisplay: React.FC<Props> = ({ event, onChoice, attributes, aiComments, loadingAI, activeFateCard, onRestart }) => {
   const [showContent, setShowContent] = useState(false);
 
   useEffect(() => {
@@ -42,7 +45,24 @@ const EventDisplay: React.FC<Props> = ({ event, onChoice, attributes, aiComments
           </div>
         </div>
 
-        {/* Automatic Social Feed */}
+        {/* Fate Card Display at Ending */}
+        {event.isEnding && (
+           <div className="my-8 flex justify-center">
+              {activeFateCard ? (
+                 <div className="animate-float-in">
+                    <FateCard card={activeFateCard} />
+                 </div>
+              ) : (
+                 <div className="w-full max-w-sm h-[500px] border-4 border-dashed border-stone-300 rounded-lg flex flex-col items-center justify-center text-stone-400 bg-stone-50 animate-pulse">
+                    <span className="material-icons-round text-4xl mb-2">auto_awesome</span>
+                    <span className="text-sm font-serif">正在推演天机...</span>
+                    <span className="text-xs mt-2 opacity-60">绘制命运画卷中</span>
+                 </div>
+              )}
+           </div>
+        )}
+
+        {/* Automatic Social Feed (Hide on Ending to focus on the Card) */}
         {!event.isEnding && (
           <SocialFeed comments={aiComments} loading={loadingAI} />
         )}
@@ -71,10 +91,11 @@ const EventDisplay: React.FC<Props> = ({ event, onChoice, attributes, aiComments
 
         {event.isEnding && (
           <button
-            onClick={() => window.location.reload()}
-            className="w-full text-center p-5 rounded-xl bg-slate-800 text-white shadow-lg hover:bg-slate-700 hover:shadow-xl transition-all font-bold tracking-widest mt-4"
+            onClick={onRestart}
+            className="w-full text-center p-5 rounded-xl bg-slate-800 text-white shadow-lg hover:bg-slate-700 hover:shadow-xl transition-all font-bold tracking-widest mt-4 flex items-center justify-center gap-2 group"
           >
-            重新开始人生
+            <span className="material-icons-round group-hover:-rotate-180 transition-transform duration-500">refresh</span>
+            重入轮回
           </button>
         )}
       </div>

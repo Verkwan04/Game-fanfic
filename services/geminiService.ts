@@ -52,3 +52,54 @@ export const generateFanComments = async (
     return "网络连接错误，无法加载评论...";
   }
 };
+
+export const generateFateCard = async (
+  endingTitle: string,
+  endingText: string
+): Promise<{ poem: string; imageUrl: string }> => {
+  const ai = getClient();
+  if (!ai) return { poem: "命数天定，无字天书。", imageUrl: "" };
+
+  const prompt = `
+    Create a "Fate Card" (Destiny Card) for a game ending.
+    
+    Context:
+    Ending Title: ${endingTitle}
+    Ending Description: ${endingText}
+    
+    Task:
+    1. Write a cryptic, atmospheric 4-line Classical Chinese Poem (七言绝句 or 五言绝句) that summarizes this ending philosophically, like the "Dream of the Red Chamber" fate book (红楼梦金陵十二钗判词) or a Temple Fortune Slip (签文).
+    2. Generate a Traditional Chinese Ink Wash Painting (Shuimo) style illustration representing this fate. Visual style: minimalist, ethereal, ancient, monochrome with slight red accents.
+    
+    Output Requirements:
+    - The response MUST contain both text (the poem) and an generated image.
+  `;
+
+  try {
+    const response = await ai.models.generateContent({
+      model: "gemini-2.5-flash-image",
+      contents: prompt,
+    });
+
+    let poem = "云深不知处...";
+    let imageUrl = "";
+
+    if (response.candidates?.[0]?.content?.parts) {
+      for (const part of response.candidates[0].content.parts) {
+        if (part.text) {
+          poem = part.text.trim();
+        } else if (part.inlineData) {
+          imageUrl = `data:${part.inlineData.mimeType};base64,${part.inlineData.data}`;
+        }
+      }
+    }
+
+    return { poem, imageUrl };
+  } catch (error) {
+    console.error("Gemini API Error (Fate Card):", error);
+    return { 
+      poem: "运去金成铁，时来铁似金。\n只叹尘缘浅，空留梦中身。", 
+      imageUrl: "" // Fallback will be handled by UI
+    };
+  }
+};

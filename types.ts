@@ -24,6 +24,14 @@ export interface GameEvent {
   endingTitle?: string;
 }
 
+export interface FateCard {
+  id: string;
+  title: string;
+  poem: string;
+  imageUrl: string;
+  timestamp: number;
+}
+
 export interface GameState {
   currentEventId: string;
   attributes: Attributes;
@@ -31,4 +39,5 @@ export interface GameState {
   isGameOver: boolean;
   generatedComments: string | null; // For AI generated flavor text
   isLoadingAI: boolean;
+  activeFateCard: FateCard | null; // The card currently being shown at ending
 }
