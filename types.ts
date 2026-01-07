@@ -22,6 +22,7 @@ export interface GameEvent {
   imagePrompt?: string; // For potential AI image gen
   isEnding?: boolean;
   endingTitle?: string;
+  poem?: string; // Pre-written poem for instant display
 }
 
 export interface FateCard {

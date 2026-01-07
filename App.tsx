@@ -40,63 +40,65 @@ const App: React.FC = () => {
 
   const currentEvent = EVENTS[gameState.currentEventId];
 
-  // Logic for special checkpoints
+  // Logic for special checkpoints (Simplified: most logic is now in constants.ts via choices)
   useEffect(() => {
     if (!currentEvent) return;
     
-    let redirectId: string | null = null;
-
-    if (gameState.currentEventId === 'ending_original_check') {
-       redirectId = (gameState.attributes.creativity > 80 && gameState.attributes.popularity > 50) 
-         ? 'ending_success' 
-         : 'ending_fail_original';
-    } else if (gameState.currentEventId === 'jail_check') {
-       redirectId = (gameState.attributes.legal < 30) 
-         ? 'ending_jail_sales' 
-         : 'ending_police_1';
+    // Fallback if event is missing
+    if (!EVENTS[gameState.currentEventId]) {
+       console.error("Event not found:", gameState.currentEventId);
     }
 
-    if (redirectId) {
-      setGameState(prev => ({
-        ...prev,
-        currentEventId: redirectId!,
-        history: [...prev.history, redirectId!]
-      }));
-    }
-  }, [gameState.currentEventId, gameState.attributes]);
+  }, [gameState.currentEventId]);
 
   // Handle Ending: Generate Fate Card
   useEffect(() => {
     if (currentEvent && currentEvent.isEnding) {
-      handleEndingReached(currentEvent.id, currentEvent.endingTitle || "未知结局", currentEvent.text);
+      handleEndingReached(
+        currentEvent.id, 
+        currentEvent.endingTitle || "未知结局", 
+        currentEvent.text,
+        currentEvent.poem
+      );
     }
   }, [gameState.currentEventId]);
 
-  const handleEndingReached = async (endingId: string, title: string, text: string) => {
-    // Check if we already have this card in achievements
+  const handleEndingReached = async (endingId: string, title: string, text: string, predefinedPoem?: string) => {
+    // 1. Check if we already have this card in achievements (Full Cache)
     if (achievements[endingId]) {
       setGameState(prev => ({ ...prev, activeFateCard: achievements[endingId] }));
       return;
     }
 
-    // Generate new card
-    const { poem, imageUrl } = await generateFateCard(title, text);
-    
-    const newCard: FateCard = {
+    // 2. Immediate Feedback: Show card with text/poem immediately, image loading
+    const tempCard: FateCard = {
       id: endingId,
       title,
-      poem,
-      imageUrl,
+      poem: predefinedPoem || "命运推演中...",
+      imageUrl: "", // Empty means loading
       timestamp: Date.now()
     };
+    
+    // Set active card immediately so UI pops up
+    setGameState(prev => ({ ...prev, activeFateCard: tempCard }));
 
+    // 3. Background: Fetch Image
+    const { poem, imageUrl } = await generateFateCard(title, text, predefinedPoem);
+    
+    const finalCard: FateCard = {
+      ...tempCard,
+      poem: poem, // Use the confirmed poem (should be same as predefined)
+      imageUrl: imageUrl // The generated image
+    };
+
+    // 4. Update State and Storage
     setAchievements(prev => {
-      const updated = { ...prev, [endingId]: newCard };
+      const updated = { ...prev, [endingId]: finalCard };
       localStorage.setItem(ACHIEVEMENTS_KEY, JSON.stringify(updated));
       return updated;
     });
 
-    setGameState(prev => ({ ...prev, activeFateCard: newCard }));
+    setGameState(prev => ({ ...prev, activeFateCard: finalCard }));
   };
 
   // Wrapper to trigger AI comments automatically
@@ -172,7 +174,7 @@ const App: React.FC = () => {
   };
 
   if (!currentEvent) {
-    return <div className="min-h-screen flex items-center justify-center text-pink-400 animate-pulse">Loading Universe...</div>;
+    return <div className="min-h-screen flex items-center justify-center text-stone-400 font-serif">Loading Universe...</div>;
   }
 
   return (
@@ -187,17 +189,17 @@ const App: React.FC = () => {
         <div className="md:col-span-12 flex flex-col md:flex-row items-center justify-between mb-2 md:mb-0">
           <div className="text-center md:text-left flex items-center gap-4">
             <div>
-              <h1 className="text-3xl md:text-4xl font-normal dreamy-font text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-pink-600 tracking-wider drop-shadow-sm">
+              <h1 className="text-3xl md:text-4xl font-normal calligraphy text-stone-800 tracking-wider drop-shadow-sm">
                 同人女模拟器
               </h1>
-              <p className="text-slate-500 font-light text-xs uppercase tracking-[0.3em]">Doujinshi Simulator</p>
+              <p className="text-stone-500 font-serif text-xs uppercase tracking-[0.3em]">Doujinshi Simulator</p>
             </div>
             <button 
                onClick={() => setShowFateBook(true)}
-               className="ml-4 w-10 h-10 rounded-full bg-stone-800 text-[#d4af37] border-2 border-[#d4af37] flex items-center justify-center shadow-lg hover:scale-105 transition-transform"
+               className="ml-4 w-12 h-12 rounded-lg bg-[#8b1e1e] text-[#f5f2e9] border border-[#f5f2e9] flex items-center justify-center shadow-md hover:scale-105 transition-transform"
                title="查看命薄"
             >
-               <span className="font-serif font-bold text-lg">命</span>
+               <span className="calligraphy text-2xl">命</span>
             </button>
           </div>
           
@@ -207,7 +209,7 @@ const App: React.FC = () => {
         </div>
 
         {/* Left Column: Game Area */}
-        <div className="md:col-span-8 glass-card rounded-3xl p-6 md:p-10 min-h-[600px] max-h-[85vh] flex flex-col relative shadow-2xl shadow-purple-500/10 transition-all">
+        <div className="md:col-span-8 ink-card rounded-xl p-8 md:p-12 min-h-[600px] max-h-[85vh] flex flex-col relative transition-all">
           <EventDisplay 
             event={currentEvent} 
             onChoice={handleChoice} 
@@ -223,23 +225,23 @@ const App: React.FC = () => {
         <div className="md:col-span-4 space-y-6 flex flex-col">
           <StatsPanel stats={gameState.attributes} />
           
-          <div className="glass p-5 rounded-2xl text-xs leading-relaxed text-slate-600 shadow-sm border border-white/50">
-            <h4 className="font-bold text-slate-800 mb-3 uppercase tracking-wider flex items-center gap-2">
-              <span className="material-icons-round text-sm text-yellow-500">lightbulb</span>
+          <div className="ink-card p-5 rounded-xl text-xs leading-relaxed text-stone-600 shadow-sm border border-stone-200">
+            <h4 className="font-bold text-stone-800 mb-3 uppercase tracking-wider flex items-center gap-2 font-serif">
+              <span className="material-icons-round text-sm text-[#8b1e1e]">lightbulb</span>
               玩法说明
             </h4>
-            <ul className="space-y-2 list-none">
+            <ul className="space-y-3 list-none font-serif">
               <li className="flex items-start gap-2">
-                <span className="w-1 h-1 rounded-full bg-purple-400 mt-1.5"></span>
+                <span className="w-1.5 h-1.5 rounded-full bg-stone-400 mt-1.5"></span>
                 <span><b>收集命签</b>：每次达成结局，命运之书都会记录你的判词。</span>
               </li>
               <li className="flex items-start gap-2">
-                <span className="w-1 h-1 rounded-full bg-blue-400 mt-1.5"></span>
+                <span className="w-1.5 h-1.5 rounded-full bg-stone-400 mt-1.5"></span>
                 <span>请随时<b>存档</b>，某些结局不可逆。</span>
               </li>
               <li className="flex items-start gap-2">
-                <span className="w-1 h-1 rounded-full bg-pink-400 mt-1.5"></span>
-                <span>点击左上角<b>【命】</b>字按钮查看已达成的结局画廊。</span>
+                <span className="w-1.5 h-1.5 rounded-full bg-stone-400 mt-1.5"></span>
+                <span>点击左上角红印<b>【命】</b>字按钮查看画廊。</span>
               </li>
             </ul>
           </div>

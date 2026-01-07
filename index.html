@@ -7,42 +7,78 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
     <style>
-      @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;600;900&family=ZCOOL+XiaoWei&family=Noto+Sans+SC:wght@400;500;700&display=swap');
+      @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@300;400;600;900&family=ZCOOL+XiaoWei&family=Ma+Shan+Zheng&display=swap');
       
+      :root {
+        --paper-bg: #f5f2e9;
+        --ink-primary: #1a1a1a;
+        --ink-secondary: #4a4a4a;
+        --stamp-red: #8b1e1e;
+      }
+
       body {
-        font-family: 'Noto Sans SC', sans-serif;
-        background: linear-gradient(135deg, #fce7f3 0%, #e0e7ff 50%, #d1fae5 100%);
-        background-attachment: fixed;
-      }
-      .serif {
         font-family: 'Noto Serif SC', serif;
-      }
-      .dreamy-font {
-        font-family: 'ZCOOL XiaoWei', serif;
-      }
-      
-      /* Glassmorphism utilities */
-      .glass {
-        background: rgba(255, 255, 255, 0.65);
-        backdrop-filter: blur(16px);
-        -webkit-backdrop-filter: blur(16px);
-        border: 1px solid rgba(255, 255, 255, 0.5);
-      }
-      .glass-card {
-        background: rgba(255, 255, 255, 0.8);
-        backdrop-filter: blur(12px);
-        border: 1px solid rgba(255, 255, 255, 0.6);
-        box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.07);
+        background-color: var(--paper-bg);
+        background-image: url("https://www.transparenttextures.com/patterns/cream-paper.png");
+        color: var(--ink-primary);
+        overflow-x: hidden;
       }
       
-      /* Animation for comments */
+      .serif { font-family: 'Noto Serif SC', serif; }
+      .calligraphy { font-family: 'Ma Shan Zheng', cursive; }
+      .dreamy-font { font-family: 'ZCOOL XiaoWei', serif; }
+      
+      /* Ink Wash Utilities */
+      .ink-card {
+        background: rgba(253, 251, 247, 0.9);
+        border: 1px solid #dcdcdc;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+        position: relative;
+      }
+      
+      .ink-btn {
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        position: relative;
+        overflow: hidden;
+      }
+      .ink-btn::after {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        height: 0%;
+        background: rgba(0,0,0,0.05);
+        transition: height 0.3s;
+        z-index: 0;
+      }
+      .ink-btn:hover::after {
+        height: 100%;
+      }
+      
+      /* Animations */
       @keyframes floatIn {
-        from { opacity: 0; transform: translateY(10px); }
+        from { opacity: 0; transform: translateY(20px); }
         to { opacity: 1; transform: translateY(0); }
       }
-      .comment-anim {
-        animation: floatIn 0.5s ease-out forwards;
+      @keyframes inkSpread {
+        from { clip-path: circle(0% at 50% 50%); }
+        to { clip-path: circle(150% at 50% 50%); }
       }
+      @keyframes stampDrop {
+        0% { transform: scale(2) rotate(20deg); opacity: 0; }
+        60% { transform: scale(0.9) rotate(-5deg); opacity: 1; }
+        100% { transform: scale(1) rotate(0deg); opacity: 1; }
+      }
+
+      .animate-float-in { animation: floatIn 0.8s ease-out forwards; }
+      .animate-stamp { animation: stampDrop 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards 0.5s; opacity: 0; }
+      
+      /* Scrollbar */
+      ::-webkit-scrollbar { width: 6px; }
+      ::-webkit-scrollbar-track { background: transparent; }
+      ::-webkit-scrollbar-thumb { background: #ccc; border-radius: 3px; }
+      ::-webkit-scrollbar-thumb:hover { background: #999; }
     </style>
   <script type="importmap">
 {
@@ -55,7 +91,7 @@
 }
 </script>
 </head>
-  <body class="text-slate-800 min-h-screen">
+  <body class="min-h-screen">
     <div id="root"></div>
   </body>
 </html>

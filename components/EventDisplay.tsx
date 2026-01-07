@@ -10,7 +10,7 @@ interface Props {
   aiComments: string | null;
   loadingAI: boolean;
   activeFateCard: FateCardType | null;
-  onRestart: () => void; // New prop for correct restart behavior
+  onRestart: () => void;
 }
 
 const EventDisplay: React.FC<Props> = ({ event, onChoice, attributes, aiComments, loadingAI, activeFateCard, onRestart }) => {
@@ -26,20 +26,22 @@ const EventDisplay: React.FC<Props> = ({ event, onChoice, attributes, aiComments
     <div className={`relative flex flex-col h-full transition-all duration-700 ease-in-out ${showContent ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
       
       {/* Story Content & Social Feed Container */}
-      <div className="flex-grow overflow-y-auto mb-6 pr-2 custom-scrollbar">
+      <div className="flex-grow overflow-y-auto mb-6 pr-4 custom-scrollbar">
         
         {/* Main Text */}
         <div className="mb-8">
           {event.isEnding && (
             <div className="text-center mb-6">
-               <span className="inline-block px-4 py-1 rounded-full bg-pink-100 text-pink-600 text-sm font-bold tracking-wider mb-2">FINAL CHAPTER</span>
+               <span className="inline-block px-4 py-1 rounded-sm border border-[#8b1e1e] text-[#8b1e1e] text-sm font-bold tracking-widest mb-2 font-serif">
+                  终章
+               </span>
             </div>
           )}
-          <h2 className="text-3xl font-black text-slate-800 mb-6 dreamy-font tracking-wide leading-tight">
+          <h2 className="text-3xl font-bold text-stone-900 mb-8 calligraphy tracking-widest leading-relaxed">
             {event.isEnding ? event.endingTitle : "新的篇章"}
           </h2>
-          <div className="prose prose-lg prose-slate max-w-none">
-            <p className="text-lg leading-loose text-slate-700 serif">
+          <div className="prose prose-lg prose-stone max-w-none">
+            <p className="text-lg leading-loose text-stone-700 font-serif text-justify">
               {event.text}
             </p>
           </div>
@@ -49,14 +51,13 @@ const EventDisplay: React.FC<Props> = ({ event, onChoice, attributes, aiComments
         {event.isEnding && (
            <div className="my-8 flex justify-center">
               {activeFateCard ? (
-                 <div className="animate-float-in">
+                 <div className="animate-float-in w-full flex justify-center">
                     <FateCard card={activeFateCard} />
                  </div>
               ) : (
-                 <div className="w-full max-w-sm h-[500px] border-4 border-dashed border-stone-300 rounded-lg flex flex-col items-center justify-center text-stone-400 bg-stone-50 animate-pulse">
-                    <span className="material-icons-round text-4xl mb-2">auto_awesome</span>
-                    <span className="text-sm font-serif">正在推演天机...</span>
-                    <span className="text-xs mt-2 opacity-60">绘制命运画卷中</span>
+                 <div className="w-full max-w-sm h-[500px] border-2 border-dashed border-stone-300 rounded-lg flex flex-col items-center justify-center text-stone-400 bg-stone-50/50 animate-pulse font-serif">
+                    <span className="material-icons-round text-4xl mb-2 opacity-50">brush</span>
+                    <span>正在挥毫泼墨...</span>
                  </div>
               )}
            </div>
@@ -70,7 +71,7 @@ const EventDisplay: React.FC<Props> = ({ event, onChoice, attributes, aiComments
       </div>
 
       {/* Choices Area - Fixed at bottom */}
-      <div className="space-y-4 pt-4 border-t border-white/40">
+      <div className="space-y-4 pt-6 border-t border-stone-200">
         {event.choices.map((choice, index) => {
           if (choice.condition && !choice.condition(attributes)) return null;
 
@@ -78,12 +79,12 @@ const EventDisplay: React.FC<Props> = ({ event, onChoice, attributes, aiComments
             <button
               key={index}
               onClick={() => onChoice(choice)}
-              className="w-full text-left p-4 rounded-xl bg-white/60 hover:bg-white border border-white/50 shadow-sm hover:shadow-md hover:border-pink-200 transition-all duration-300 group relative overflow-hidden"
+              className="ink-btn w-full text-left p-4 rounded-lg bg-stone-100/50 hover:bg-stone-200 border border-stone-300 hover:border-stone-400 transition-all duration-300 group relative"
             >
-              <div className="absolute left-0 top-0 w-1 h-full bg-pink-400 opacity-0 group-hover:opacity-100 transition-opacity"></div>
-              <span className="relative z-10 font-bold text-slate-700 group-hover:text-pink-900 text-base">{choice.text}</span>
+              <div className="absolute left-0 top-0 h-full w-1 bg-stone-400 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+              <span className="relative z-10 font-bold text-stone-800 group-hover:text-black text-base serif tracking-wide">{choice.text}</span>
               {choice.description && (
-                <span className="block relative z-10 text-xs text-slate-500 mt-1 font-medium group-hover:text-pink-700/70">{choice.description}</span>
+                <span className="block relative z-10 text-xs text-stone-500 mt-1 font-serif italic group-hover:text-stone-600">{choice.description}</span>
               )}
             </button>
           );
@@ -92,9 +93,9 @@ const EventDisplay: React.FC<Props> = ({ event, onChoice, attributes, aiComments
         {event.isEnding && (
           <button
             onClick={onRestart}
-            className="w-full text-center p-5 rounded-xl bg-slate-800 text-white shadow-lg hover:bg-slate-700 hover:shadow-xl transition-all font-bold tracking-widest mt-4 flex items-center justify-center gap-2 group"
+            className="w-full text-center p-5 rounded-lg bg-[#1a1a1a] text-[#f5f2e9] shadow-lg hover:bg-black hover:shadow-xl transition-all font-bold tracking-widest mt-4 flex items-center justify-center gap-2 group font-serif border border-stone-600"
           >
-            <span className="material-icons-round group-hover:-rotate-180 transition-transform duration-500">refresh</span>
+            <span className="material-icons-round group-hover:-rotate-180 transition-transform duration-700">refresh</span>
             重入轮回
           </button>
         )}
