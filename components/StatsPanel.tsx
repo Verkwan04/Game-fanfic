@@ -36,6 +36,7 @@ const StatsPanel: React.FC<Props> = ({ stats }) => {
       <StatBar label="情商" value={stats.eq} />
       <StatBar label="知名度" value={stats.popularity} />
       <StatBar label="压力" value={stats.stress} />
+      <StatBar label="社交信任" value={stats.trust} />
       
       <div className="mt-8 pt-4 border-t border-stone-300 flex justify-between items-center">
         <span className="text-sm font-serif text-stone-600 tracking-wide">私房钱</span>

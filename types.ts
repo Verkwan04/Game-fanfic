@@ -5,6 +5,7 @@ export interface Attributes {
   popularity: number; // 知名度
   stress: number;     // 压力
   money: number;      // 金钱
+  trust: number;      // 信任/社交 (New: Tracks depth of relationships in fandom)
 }
 
 export interface Choice {

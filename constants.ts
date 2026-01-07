@@ -6,7 +6,8 @@ export const INITIAL_STATS: Attributes = {
   eq: 50,
   popularity: 10,
   stress: 20,
-  money: 500
+  money: 500,
+  trust: 0
 };
 
 // Simplified Event Tree
@@ -106,7 +107,7 @@ export const EVENTS: Record<string, GameEvent> = {
     choices: [
       {
         text: "温柔解释，虚心接受。",
-        nextEventId: "random_crisis_hub",
+        nextEventId: "mid_game_hub", // Redirect to new flow
         effects: { eq: 10, popularity: 5 }
       },
       {
@@ -116,7 +117,7 @@ export const EVENTS: Record<string, GameEvent> = {
       },
       {
         text: "无视，删评。",
-        nextEventId: "random_crisis_hub",
+        nextEventId: "mid_game_hub", // Redirect to new flow
         effects: { stress: -5 }
       }
     ]
@@ -145,7 +146,7 @@ export const EVENTS: Record<string, GameEvent> = {
     choices: [
       {
         text: "心态崩了，休息一阵。",
-        nextEventId: "random_crisis_hub",
+        nextEventId: "mid_game_hub",
         effects: { stress: 15, creativity: -10 }
       }
     ]
@@ -162,7 +163,7 @@ export const EVENTS: Record<string, GameEvent> = {
       },
       {
         text: "强行忍耐，继续更新打脸。",
-        nextEventId: "random_crisis_hub",
+        nextEventId: "mid_game_hub",
         effects: { stress: 30, eq: 20 }
       }
     ]
@@ -174,7 +175,7 @@ export const EVENTS: Record<string, GameEvent> = {
     choices: [
       {
         text: "立刻滑跪道歉，删文锁号。",
-        nextEventId: "commercial_thought",
+        nextEventId: "mid_game_hub",
         effects: { stress: 20, popularity: -10 }
       },
       {
@@ -185,14 +186,176 @@ export const EVENTS: Record<string, GameEvent> = {
     ]
   },
 
-  // --- DRAMA & RISKS HUB ---
+  // --- NEW: MID-GAME HUB (Daily Routine) ---
+  "mid_game_hub": {
+    id: "mid_game_hub",
+    text: "经过初期的尝试，你的账号渐渐步入正轨。接下来的一段时间，你决定把重心放在哪里？",
+    choices: [
+      {
+        text: "【沉淀】开长篇连载，打磨剧情。",
+        nextEventId: "path_long_novel",
+        effects: { creativity: -20, popularity: 2, stress: 10 },
+        description: "耗费巨大心力，热度增长缓慢，但能积累死忠粉。"
+      },
+      {
+        text: "【整活】混论坛/看电影/水群，维持热度。",
+        nextEventId: "path_forum_surfer",
+        effects: { creativity: -5, popularity: 20, stress: -5, legal: -5 },
+        description: "轻松快乐热度高，但容易卷入是非争议。"
+      },
+      {
+        text: "【扩列】建粉丝群，在圈内交朋友。",
+        nextEventId: "path_social_build",
+        effects: { trust: 20, stress: -10 },
+        description: "寻找同好，分享生活。但人心隔肚皮..."
+      }
+    ]
+  },
+
+  // --- PATH: LONG NOVEL ---
+  "path_long_novel": {
+    id: "path_long_novel",
+    text: "你开启了一个宏大的长篇连载。每天下班后，你都要在电脑前枯坐三小时。数据很冷清，偶尔只有几个读者留言“大大加油”。你的灵感正在被快速消耗。",
+    choices: [
+      {
+        text: "耐得住寂寞，坚持完结！",
+        nextEventId: "long_novel_success",
+        effects: { creativity: -10, stress: 10, eq: 10 }
+      },
+      {
+        text: "太累了，断更跑路吧...",
+        nextEventId: "commercial_thought", // Jump to next phase
+        effects: { stress: -10, popularity: -5 }
+      }
+    ]
+  },
+  "long_novel_success": {
+    id: "long_novel_success",
+    text: "历时三个月，你终于完结了这篇长文。虽然没有大爆，但收获了一批高质量的读后感，你的文笔也得到了极大的提升。",
+    choices: [
+      {
+        text: "不仅要写，还要出本纪念！",
+        nextEventId: "selling_books",
+        effects: { creativity: 20 }
+      },
+      {
+        text: "休息一下，看看有什么变现机会。",
+        nextEventId: "commercial_thought",
+        effects: { creativity: 10 }
+      }
+    ]
+  },
+
+  // --- PATH: FORUM/MOVIE (High Drama) ---
+  "path_forum_surfer": {
+    id: "path_forum_surfer",
+    text: "你最近沉迷于在论坛指点江山，或者拉片看电影找代餐。你在论坛发的“关于XXX角色崩坏的深度分析”被转了几千条，热度爆炸，但评论区也吵翻了天。",
+    choices: [
+      {
+        text: "继续输出观点，黑红也是红！",
+        nextEventId: "drama_escalation",
+        effects: { popularity: 20, stress: 10, legal: -5 }
+      },
+      {
+        text: "见好就收，切回岁月静好模式。",
+        nextEventId: "commercial_thought",
+        effects: { stress: -5 }
+      }
+    ]
+  },
+  "drama_escalation": {
+    id: "drama_escalation",
+    text: "你的言论激怒了原作粉/对家粉。他们开始深扒你的过往发言，试图寻找你的黑点。你感觉自己处于风暴中心。",
+    choices: [
+      {
+        text: "硬刚到底！",
+        nextEventId: "drama_check",
+        effects: { stress: 20 }
+      },
+      {
+        text: "滑跪道歉。",
+        nextEventId: "random_crisis_hub",
+        effects: { popularity: -10, eq: -10 }
+      }
+    ]
+  },
+
+  // --- PATH: SOCIAL / BETRAYAL ---
+  "path_social_build": {
+    id: "path_social_build",
+    text: "你建了一个名为“XXX养老院”的粉丝群，还加了几个聊得来的亲友。大家每天一起磕CP，吐槽三次元的烦恼。你感觉找到了组织。",
+    choices: [
+      {
+        text: "不仅聊CP，还分享三次元生活（自拍/工作/炫富）。",
+        nextEventId: "social_deepen_risky",
+        effects: { trust: 20, stress: -10 },
+        description: "关系越来越铁，但也暴露了隐私。"
+      },
+      {
+        text: "保持距离，只聊二次元。",
+        nextEventId: "commercial_thought",
+        effects: { trust: 5 }
+      }
+    ]
+  },
+  "social_deepen_risky": {
+    id: "social_deepen_risky",
+    text: "你和群里的“亲友”无话不谈。你告诉她们你最近升职加薪了，还晒了男朋友送的礼物。大家都夸你是“现充赢家”。直到有一天——",
+    choices: [
+      {
+        text: "查看发生了什么...",
+        nextEventId: "friend_betrayal",
+        effects: {}
+      }
+    ]
+  },
+  "friend_betrayal": {
+    id: "friend_betrayal",
+    text: "【背刺】你的“亲友”把你在群里吐槽领导、以及写R18文的记录打包发给了你的公司邮箱，并向网信办举报了你。原来她一直嫉妒你的生活，潜伏在你身边只为这一天。",
+    choices: [
+      {
+        text: "崩溃！向她求情。",
+        nextEventId: "betrayal_outcome_bad",
+        effects: { stress: 50, eq: -20 }
+      },
+      {
+        text: "冷静处理，矢口否认，那是P图。",
+        nextEventId: "betrayal_outcome_fight",
+        effects: { stress: 20, legal: 10 }
+      }
+    ]
+  },
+  "betrayal_outcome_bad": {
+    id: "betrayal_outcome_bad",
+    text: "对方没有理会你的求情，反而把你的狼狈样发到了网上嘲笑。你在三次元的工作丢了，二次元的名声也臭了。",
+    choices: [
+      {
+        text: "这人心...太可怕了。",
+        nextEventId: "ending_cyber_bullying",
+        effects: {}
+      }
+    ]
+  },
+  "betrayal_outcome_fight": {
+    id: "betrayal_outcome_fight",
+    text: "你硬着头皮坚持那是有人恶意P图陷害。虽然公司半信半疑，但你的生活被搞得一团糟。你清空了列表，退出了所有群聊。",
+    choices: [
+      {
+        text: "从此做一个孤狼。",
+        nextEventId: "commercial_thought",
+        effects: { trust: -100, stress: 30 }
+      }
+    ]
+  },
+
+  // --- DRAMA & RISKS HUB (Updated Router) ---
   "random_crisis_hub": {
     id: "random_crisis_hub",
     text: "日子一天天过去，你在圈子里小有名气。但互联网总是充满了不确定性。这一天——",
     choices: [
       {
         text: "查看今日运势...",
-        nextEventId: "algorithm_death", // Simulate random routing by user choice feeling random but fixed here for demo
+        nextEventId: "algorithm_death", // Default route
         effects: {}
       }
     ]
@@ -278,7 +441,7 @@ export const EVENTS: Record<string, GameEvent> = {
     choices: [
       {
         text: "继续创作",
-        nextEventId: "commercial_thought",
+        nextEventId: "mid_game_hub",
         effects: {}
       }
     ]
