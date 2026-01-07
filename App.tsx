@@ -218,6 +218,7 @@ const App: React.FC = () => {
             loadingAI={gameState.isLoadingAI}
             activeFateCard={gameState.activeFateCard}
             onRestart={handleRestart}
+            onOpenFateBook={() => setShowFateBook(true)}
           />
         </div>
 

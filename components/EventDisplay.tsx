@@ -1,7 +1,8 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { GameEvent, Choice, Attributes, FateCard as FateCardType } from '../types';
 import SocialFeed from './SocialFeed';
 import FateCard from './FateCard';
+import html2canvas from 'html2canvas';
 
 interface Props {
   event: GameEvent;
@@ -11,16 +12,49 @@ interface Props {
   loadingAI: boolean;
   activeFateCard: FateCardType | null;
   onRestart: () => void;
+  onOpenFateBook: () => void;
 }
 
-const EventDisplay: React.FC<Props> = ({ event, onChoice, attributes, aiComments, loadingAI, activeFateCard, onRestart }) => {
+const EventDisplay: React.FC<Props> = ({ 
+  event, 
+  onChoice, 
+  attributes, 
+  aiComments, 
+  loadingAI, 
+  activeFateCard, 
+  onRestart,
+  onOpenFateBook 
+}) => {
   const [showContent, setShowContent] = useState(false);
+  const cardRef = useRef<HTMLDivElement>(null);
+  const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
     setShowContent(false);
     const timer = setTimeout(() => setShowContent(true), 100);
     return () => clearTimeout(timer);
   }, [event.id]);
+
+  const handleDownloadCard = async () => {
+    if (!cardRef.current || isSaving) return;
+    setIsSaving(true);
+    try {
+      const canvas = await html2canvas(cardRef.current, {
+        scale: 2, // Higher resolution
+        backgroundColor: null, // Transparent bg if possible, or matches component
+        useCORS: true, // For cross-origin images
+      });
+      const image = canvas.toDataURL("image/png");
+      const link = document.createElement("a");
+      link.href = image;
+      link.download = `同人女模拟器-结局-${activeFateCard?.title || 'Fate'}.png`;
+      link.click();
+    } catch (error) {
+      console.error("Save failed", error);
+    } finally {
+      setIsSaving(false);
+    }
+  };
 
   return (
     <div className={`relative flex flex-col h-full transition-all duration-700 ease-in-out ${showContent ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
@@ -49,15 +83,39 @@ const EventDisplay: React.FC<Props> = ({ event, onChoice, attributes, aiComments
 
         {/* Fate Card Display at Ending */}
         {event.isEnding && (
-           <div className="my-8 flex justify-center">
-              {activeFateCard ? (
-                 <div className="animate-float-in w-full flex justify-center">
-                    <FateCard card={activeFateCard} />
-                 </div>
-              ) : (
-                 <div className="w-full max-w-sm h-[500px] border-2 border-dashed border-stone-300 rounded-lg flex flex-col items-center justify-center text-stone-400 bg-stone-50/50 animate-pulse font-serif">
-                    <span className="material-icons-round text-4xl mb-2 opacity-50">brush</span>
-                    <span>正在挥毫泼墨...</span>
+           <div className="my-8 flex flex-col items-center gap-6">
+              <div ref={cardRef} className="w-full flex justify-center p-2 rounded-lg bg-transparent">
+                {activeFateCard ? (
+                  <div className="animate-float-in w-full flex justify-center">
+                      <FateCard card={activeFateCard} />
+                  </div>
+                ) : (
+                  <div className="w-full max-w-sm h-[500px] border-2 border-dashed border-stone-300 rounded-lg flex flex-col items-center justify-center text-stone-400 bg-stone-50/50 animate-pulse font-serif">
+                      <span className="material-icons-round text-4xl mb-2 opacity-50">brush</span>
+                      <span>正在挥毫泼墨...</span>
+                  </div>
+                )}
+              </div>
+
+              {/* Card Actions */}
+              {activeFateCard && (
+                 <div className="flex gap-4">
+                    <button 
+                      onClick={handleDownloadCard}
+                      disabled={isSaving}
+                      className="px-4 py-2 bg-stone-200 hover:bg-stone-300 text-stone-800 rounded-md font-serif text-sm flex items-center gap-2 transition-colors disabled:opacity-50"
+                    >
+                       <span className="material-icons-round text-sm">{isSaving ? 'hourglass_top' : 'download'}</span>
+                       {isSaving ? '保存中...' : '保存图片'}
+                    </button>
+                    
+                    <button 
+                      onClick={onOpenFateBook}
+                      className="px-4 py-2 bg-[#8b1e1e] hover:bg-[#a62424] text-[#f5f2e9] rounded-md font-serif text-sm flex items-center gap-2 transition-colors shadow-md"
+                    >
+                       <span className="material-icons-round text-sm">bookmark_added</span>
+                       收入命薄
+                    </button>
                  </div>
               )}
            </div>
@@ -72,7 +130,7 @@ const EventDisplay: React.FC<Props> = ({ event, onChoice, attributes, aiComments
 
       {/* Choices Area - Fixed at bottom */}
       <div className="space-y-4 pt-6 border-t border-stone-200">
-        {event.choices.map((choice, index) => {
+        {!event.isEnding && event.choices.map((choice, index) => {
           if (choice.condition && !choice.condition(attributes)) return null;
 
           return (
