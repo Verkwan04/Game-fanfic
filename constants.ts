@@ -193,9 +193,9 @@ export const EVENTS: Record<string, GameEvent> = {
     choices: [
       {
         text: "【沉淀】开长篇连载，打磨剧情。",
-        nextEventId: "path_long_novel",
-        effects: { creativity: -20, popularity: 2, stress: 10 },
-        description: "耗费巨大心力，热度增长缓慢，但能积累死忠粉。"
+        nextEventId: "path_long_novel_start", // Redirect to game
+        effects: { creativity: -5 },
+        description: "耗费心力，需要灵感判定。"
       },
       {
         text: "【整活】混论坛/看电影/水群，维持热度。",
@@ -208,35 +208,51 @@ export const EVENTS: Record<string, GameEvent> = {
         nextEventId: "path_social_build",
         effects: { trust: 20, stress: -10 },
         description: "寻找同好，分享生活。但人心隔肚皮..."
+      },
+      {
+        text: "【搞钱】出个人志",
+        nextEventId: "selling_books",
+        effects: { money: -100, stress: 15, creativity: 5 },
+        description: "将已有的脑洞实体化，高投入高回报？"
       }
     ]
   },
 
-  // --- PATH: LONG NOVEL ---
-  "path_long_novel": {
-    id: "path_long_novel",
-    text: "你开启了一个宏大的长篇连载。每天下班后，你都要在电脑前枯坐三小时。数据很冷清，偶尔只有几个读者留言“大大加油”。你的灵感正在被快速消耗。",
+  // --- PATH: LONG NOVEL WITH MINI-GAME ---
+  "path_long_novel_start": {
+    id: "path_long_novel_start",
+    text: "你构思了一个宏大的长篇连载。写到一半，卡文了。你坐在电脑前，看着闪烁的光标，大脑一片空白。你需要一次灵感爆发。",
+    choices: [], // Trigger mini game
+    miniGame: {
+      type: 'dice',
+      threshold: 4, // Need 4, 5, or 6 to succeed
+      successEventId: "long_novel_success",
+      failEventId: "long_novel_fail",
+      successEffects: { creativity: 20, popularity: 10, stress: -10 },
+      failEffects: { creativity: -10, stress: 15 }
+    }
+  },
+
+  "long_novel_fail": {
+    id: "long_novel_fail",
+    text: "【判定失败】你枯坐了一整晚，只写出了两百字，还删了一百九十个字。灵感女神没有眷顾你，你在这个长篇坑里越陷越深，读者开始催更并在评论区发刀片。",
     choices: [
       {
-        text: "耐得住寂寞，坚持完结！",
-        nextEventId: "long_novel_success",
-        effects: { creativity: -10, stress: 10, eq: 10 }
-      },
-      {
         text: "太累了，断更跑路吧...",
-        nextEventId: "commercial_thought", // Jump to next phase
+        nextEventId: "commercial_thought",
         effects: { stress: -10, popularity: -5 }
       }
     ]
   },
+
   "long_novel_success": {
     id: "long_novel_success",
-    text: "历时三个月，你终于完结了这篇长文。虽然没有大爆，但收获了一批高质量的读后感，你的文笔也得到了极大的提升。",
+    text: "【判定大成功！】如神灵附体，你运指如飞，一气呵成写完了最高潮的章节！这一章发布后，评论区炸了，读者都在尖叫流泪。你不仅填完了坑，文笔也得到了极大的升华。",
     choices: [
       {
-        text: "不仅要写，还要出本纪念！",
+        text: "趁热打铁，出本纪念！",
         nextEventId: "selling_books",
-        effects: { creativity: 20 }
+        effects: { creativity: 20, popularity: 15 }
       },
       {
         text: "休息一下，看看有什么变现机会。",
@@ -487,7 +503,7 @@ export const EVENTS: Record<string, GameEvent> = {
   // --- WULIAO (FREE MERCH) PATH ---
   "wuliao_choice": {
     id: "wuliao_choice",
-    text: "你决定自费制作一批精美的明信片，免费送给同好。但是邮费是个问题。",
+    text: "你决定自费制作一批精美的周边（明信片或无料本），免费送给同好。但是邮费是个问题。",
     choices: [
       {
         text: "走闲鱼链接，设置1元+运费（防止跑单）。",
@@ -533,6 +549,12 @@ export const EVENTS: Record<string, GameEvent> = {
         text: "参加CP（Comicup）漫展场贩。",
         nextEventId: "cp_inspection",
         effects: { money: 300, popularity: 10 }
+      },
+      {
+        text: "走闲鱼链接，设置1元+运费",
+        nextEventId: "wuliao_choice",
+        effects: { money: -50, popularity: 5 },
+        description: "只为回血，不想赚钱"
       }
     ]
   },
@@ -631,6 +653,22 @@ export const EVENTS: Record<string, GameEvent> = {
     id: "future_path",
     text: "经历了一系列风波，你站在人生的岔路口。无论是为爱发电的疲惫，还是三次元的压力，都让你不得不重新思考。",
     choices: [
+      // NEW HIDDEN ENDING 1: Cultural Ambassador
+      {
+        text: "【隐藏】接受官方邀请，成为文化大使。",
+        condition: (s) => s.creativity > 80 && s.legal > 80 && s.popularity > 50,
+        nextEventId: "ending_cultural_ambassador",
+        effects: { money: 1000 },
+        description: "达成隐藏条件：高创作、高法律、高知名"
+      },
+      // NEW HIDDEN ENDING 2: Fandom Godmother
+      {
+        text: "【隐藏】整合资源，建立创作者避风港。",
+        condition: (s) => s.trust > 80 && s.money > 800 && s.eq > 50,
+        nextEventId: "ending_godmother",
+        effects: {},
+        description: "达成隐藏条件：高信任、高金钱、高情商"
+      },
       {
         text: "我不甘心！我要转型职业作家！(高难度)",
         nextEventId: "original_start",
@@ -785,6 +823,27 @@ export const EVENTS: Record<string, GameEvent> = {
   },
 
   // --- ENDINGS ---
+  
+  // New Good Ending 1
+  "ending_cultural_ambassador": {
+    id: "ending_cultural_ambassador",
+    text: "【结局：文化大使】\n你因为对原作极其深刻的理解和高超的二创水平，被官方版权方注意到。他们不仅没有告你，反而邀请你参与官方衍生作品的编剧。你用实力证明，同人不仅仅是依附，更是共生。你在主流媒体上侃侃而谈，让更多人理解了这个小众圈子的美好。",
+    choices: [],
+    isEnding: true,
+    endingTitle: "结局：文化大使",
+    poem: "枯木逢春发旧枝，同人一笔动天时。\n原来殊途终同归，满堂花醉客来迟。"
+  },
+
+  // New Good Ending 2
+  "ending_godmother": {
+    id: "ending_godmother",
+    text: "【结局：圈层教母】\n你并没有成为顶尖的大作家，但你用极高的情商和积累的人脉，建立了一个名为“方舟”的创作社区。你保护了无数小作者免受网暴，你制定的“圈层公约”被视为铁律。你是这个混沌圈子里最坚实的后盾，被无数人尊称为“教母”。",
+    choices: [],
+    isEnding: true,
+    endingTitle: "结局：圈层教母",
+    poem: "八方风雨护孤舟，万丈红尘一望收。\n不为浮名遮望眼，且留清气在心头。"
+  },
+
   "ending_police_1": {
     id: "ending_police_1",
     text: "【结局：请喝茶】\n因为传播违规内容或被恶意举报，你被辖区派出所传唤。虽然只是批评教育，但你在三次元社死了，父母也没收了你的电脑。",

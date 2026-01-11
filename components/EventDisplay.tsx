@@ -2,6 +2,7 @@ import React, { useEffect, useState, useRef } from 'react';
 import { GameEvent, Choice, Attributes, FateCard as FateCardType } from '../types';
 import SocialFeed from './SocialFeed';
 import FateCard from './FateCard';
+import DiceGame from './DiceGame';
 import html2canvas from 'html2canvas';
 
 interface Props {
@@ -67,6 +68,21 @@ const EventDisplay: React.FC<Props> = ({
     });
   };
 
+  // Handle Mini Game Result
+  const handleDiceResult = (result: number) => {
+    if (!event.miniGame) return;
+    
+    const isSuccess = result >= event.miniGame.threshold;
+    const nextId = isSuccess ? event.miniGame.successEventId : event.miniGame.failEventId;
+    const effects = isSuccess ? event.miniGame.successEffects : event.miniGame.failEffects;
+
+    onChoice({
+      text: "Dice Result",
+      nextEventId: nextId,
+      effects: effects
+    });
+  };
+
   return (
     <div className={`relative flex flex-col h-full transition-all duration-700 ease-in-out ${showContent ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
       
@@ -91,6 +107,11 @@ const EventDisplay: React.FC<Props> = ({
             </p>
           </div>
         </div>
+
+        {/* Mini Game Interaction (If Active) */}
+        {!event.isEnding && event.miniGame && (
+           <DiceGame onRollComplete={handleDiceResult} />
+        )}
 
         {/* Fate Card Display at Ending */}
         {event.isEnding && (
@@ -141,7 +162,7 @@ const EventDisplay: React.FC<Props> = ({
         )}
 
         {/* Automatic Social Feed (Hide on Ending to focus on the Card) */}
-        {!event.isEnding && (
+        {!event.isEnding && !event.miniGame && (
           <SocialFeed comments={aiComments} loading={loadingAI} />
         )}
 
@@ -149,7 +170,7 @@ const EventDisplay: React.FC<Props> = ({
 
       {/* Choices Area - Fixed at bottom */}
       <div className="space-y-4 pt-6 border-t border-stone-200">
-        {!event.isEnding && event.choices.map((choice, index) => {
+        {!event.isEnding && !event.miniGame && event.choices.map((choice, index) => {
           if (choice.condition && !choice.condition(attributes)) return null;
 
           return (

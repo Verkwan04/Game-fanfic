@@ -16,6 +16,15 @@ export interface Choice {
   description?: string; // Hint about what this does
 }
 
+export interface MiniGameConfig {
+  type: 'dice'; // Future proofing for other types
+  threshold: number; // Value to beat
+  successEventId: string;
+  failEventId: string;
+  successEffects?: Partial<Attributes>;
+  failEffects?: Partial<Attributes>;
+}
+
 export interface GameEvent {
   id: string;
   text: string;
@@ -24,6 +33,7 @@ export interface GameEvent {
   isEnding?: boolean;
   endingTitle?: string;
   poem?: string; // Pre-written poem for instant display
+  miniGame?: MiniGameConfig; // Optional mini-game trigger
 }
 
 export interface FateCard {
