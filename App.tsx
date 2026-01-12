@@ -1,14 +1,13 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { GameState, Choice, Attributes, FateCard } from './types';
-import { INITIAL_STATS, EVENTS, COMMENT_LIBRARY } from './constants';
+import { INITIAL_STATS, EVENTS, ARCHETYPES } from './constants';
 import StatsPanel from './components/StatsPanel';
 import EventDisplay from './components/EventDisplay';
 import SaveLoadControls from './components/SaveLoadControls';
 import FateBook from './components/FateBook';
-import { generateFateCard } from './services/geminiService';
 
-const SAVE_KEY = 'doujinshi_save_data_v2'; 
-const ACHIEVEMENTS_KEY = 'doujinshi_achievements_v1';
+const SAVE_KEY = 'doujinshi_save_data_v2';
+const ACHIEVEMENTS_KEY = 'doujinshi_achievements_v2';
 
 const App: React.FC = () => {
   const [gameState, setGameState] = useState<GameState>({
@@ -16,13 +15,13 @@ const App: React.FC = () => {
     attributes: { ...INITIAL_STATS },
     history: ['start'],
     isGameOver: false,
-    generatedComments: null,
     activeFateCard: null
   });
   
   const [hasSave, setHasSave] = useState(false);
   const [achievements, setAchievements] = useState<Record<string, FateCard>>({});
   const [showFateBook, setShowFateBook] = useState(false);
+  const [lotteryResult, setLotteryResult] = useState<string | null>(null);
 
   // Load Save and Achievements
   useEffect(() => {
@@ -37,67 +36,57 @@ const App: React.FC = () => {
     }
   }, []);
 
-  const currentEvent = EVENTS[gameState.currentEventId] || EVENTS['start'];
+  const currentEvent = EVENTS[gameState.currentEventId];
 
-  // Handle Side Effects (Ending Generation / Comment Generation)
+  // Handle Ending
   useEffect(() => {
-    if (!currentEvent) return;
-
-    // 1. Handle Ending
-    if (currentEvent.isEnding) {
+    if (currentEvent && currentEvent.isEnding) {
       handleEndingReached(
         currentEvent.id, 
         currentEvent.endingTitle || "未知结局", 
-        currentEvent.text,
         currentEvent.poem
       );
-      setGameState(prev => ({ ...prev, generatedComments: null }));
-      return;
-    }
-
-    // 2. Handle Social Comments (Synchronous from Library)
-    if (currentEvent.commentScenario) {
-      const pool = COMMENT_LIBRARY[currentEvent.commentScenario];
-      if (pool && pool.length > 0) {
-        // Shuffle and pick 3 unique comments
-        const shuffled = [...pool].sort(() => 0.5 - Math.random());
-        setGameState(prev => ({ ...prev, generatedComments: shuffled.slice(0, 3) }));
-      } else {
-         setGameState(prev => ({ ...prev, generatedComments: null }));
-      }
-    } else {
-      setGameState(prev => ({ ...prev, generatedComments: null }));
     }
   }, [gameState.currentEventId]);
 
-  const handleEndingReached = async (endingId: string, title: string, text: string, predefinedPoem?: string) => {
-    // 1. Check cache
-    if (achievements[endingId]) {
-      setGameState(prev => ({ ...prev, activeFateCard: achievements[endingId] }));
-      return;
-    }
-
-    // 2. Generate Poem (AI or predefined)
-    const { poem } = await generateFateCard(title, text, predefinedPoem);
-    
+  const handleEndingReached = (endingId: string, title: string, poem?: string) => {
     const finalCard: FateCard = {
       id: endingId,
       title,
-      poem,
+      poem: poem || "命数天定，无字天书。",
       timestamp: Date.now()
     };
 
-    // 3. Update
+    setGameState(prev => ({ ...prev, activeFateCard: finalCard }));
+
     setAchievements(prev => {
       const updated = { ...prev, [endingId]: finalCard };
       localStorage.setItem(ACHIEVEMENTS_KEY, JSON.stringify(updated));
       return updated;
     });
-
-    setGameState(prev => ({ ...prev, activeFateCard: finalCard }));
   };
 
   const handleChoice = (choice: Choice) => {
+    // INTERCEPT: LOTTERY LOGIC
+    if (choice.nextEventId === 'init_lottery') {
+        const randomArchetype = ARCHETYPES[Math.floor(Math.random() * ARCHETYPES.length)];
+        
+        setGameState(prev => ({
+            ...prev,
+            currentEventId: 'intro_after_lottery',
+            attributes: { ...randomArchetype.stats }, // Override stats
+            history: [...prev.history, 'intro_after_lottery'],
+            activeFateCard: null
+        }));
+        
+        // Temporarily show result (hacky way using alert or just state?)
+        // Better: let's inject a "flash message" into the next event text?
+        // Simpler: Just update state and let user see updated stats.
+        // Or show an alert.
+        alert(`【抽签结果】\n你抽到了：${randomArchetype.name}\n${randomArchetype.desc}`);
+        return;
+    }
+
     const newStats = { ...gameState.attributes };
 
     if (choice.effects) {
@@ -109,24 +98,11 @@ const App: React.FC = () => {
       });
     }
 
-    // DEFING FATE LOGIC (Random "Miracle" Probability)
-    let nextId = choice.nextEventId;
-    const isNextEnding = EVENTS[nextId]?.isEnding;
-    
-    if (!isNextEnding && nextId !== 'start' && nextId !== 'lottery_draw') {
-       const fateRoll = Math.random();
-       if (fateRoll < 0.02) { // 2% chance
-          console.log("Defying Fate Triggered!");
-          nextId = 'event_miracle';
-       }
-    }
-
     setGameState(prev => ({
       ...prev,
-      currentEventId: nextId,
+      currentEventId: choice.nextEventId,
       attributes: newStats,
-      history: [...prev.history, nextId],
-      generatedComments: null,
+      history: [...prev.history, choice.nextEventId],
       activeFateCard: null
     }));
   };
@@ -141,9 +117,7 @@ const App: React.FC = () => {
     if (saved) {
       try {
         const parsed = JSON.parse(saved);
-        if (parsed && parsed.currentEventId && parsed.attributes) {
-           setGameState(parsed);
-        }
+        setGameState(parsed);
       } catch (e) {
         console.error("Failed to load save", e);
       }
@@ -153,13 +127,16 @@ const App: React.FC = () => {
   const handleRestart = () => {
     setGameState({
       currentEventId: 'start',
-      attributes: { ...INITIAL_STATS }, 
+      attributes: { ...INITIAL_STATS },
       history: ['start'],
       isGameOver: false,
-      generatedComments: null,
       activeFateCard: null
     });
   };
+
+  if (!currentEvent) {
+    return <div className="min-h-screen flex items-center justify-center text-stone-400 font-serif">Loading Universe...</div>;
+  }
 
   return (
     <div className="min-h-screen w-full flex items-center justify-center p-4 md:p-8">
@@ -198,8 +175,6 @@ const App: React.FC = () => {
             event={currentEvent} 
             onChoice={handleChoice} 
             attributes={gameState.attributes}
-            aiComments={gameState.generatedComments}
-            loadingAI={false} 
             activeFateCard={gameState.activeFateCard}
             onRestart={handleRestart}
             onOpenFateBook={() => setShowFateBook(true)}
@@ -218,15 +193,15 @@ const App: React.FC = () => {
             <ul className="space-y-3 list-none font-serif">
               <li className="flex items-start gap-2">
                 <span className="w-1.5 h-1.5 rounded-full bg-stone-400 mt-1.5"></span>
-                <span><b>开局抽签</b>：不同的出身决定了你的初始资源。</span>
+                <span><b>人设抽签</b>：开局随机决定你的命运起点。</span>
               </li>
               <li className="flex items-start gap-2">
                 <span className="w-1.5 h-1.5 rounded-full bg-stone-400 mt-1.5"></span>
-                <span><b>逆天改命</b>：极小概率触发奇迹事件。</span>
+                <span><b>收集命签</b>：达成不同结局，解锁命薄判词。</span>
               </li>
               <li className="flex items-start gap-2">
                 <span className="w-1.5 h-1.5 rounded-full bg-stone-400 mt-1.5"></span>
-                <span><b>善用存档</b>：江湖险恶，随时可能结局。</span>
+                <span><b>请随时存档</b>：圈子险恶，一失足成千古恨。</span>
               </li>
             </ul>
           </div>

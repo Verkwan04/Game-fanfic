@@ -8,8 +8,6 @@ interface Props {
   event: GameEvent;
   onChoice: (choice: Choice) => void;
   attributes: Attributes;
-  aiComments: string[] | null;
-  loadingAI: boolean;
   activeFateCard: FateCardType | null;
   onRestart: () => void;
   onOpenFateBook: () => void;
@@ -19,8 +17,6 @@ const EventDisplay: React.FC<Props> = ({
   event, 
   onChoice, 
   attributes, 
-  aiComments, 
-  loadingAI, 
   activeFateCard, 
   onRestart,
   onOpenFateBook 
@@ -58,10 +54,10 @@ const EventDisplay: React.FC<Props> = ({
 
   const handleCopyText = () => {
     if (!activeFateCard) return;
-    const shareText = `【同人女模拟器】\n我在乱世中达成了结局：${activeFateCard.title}\n----------------\n${activeFateCard.poem}\n----------------\n你是为爱发电还是用爱换钱？快来测测你的同人创作运势！`;
+    const shareText = `【同人女模拟器】\n我在乱世中达成了结局：${activeFateCard.title}\n----------------\n${activeFateCard.poem}\n----------------\n快来试试你的运势！`;
     
     navigator.clipboard.writeText(shareText).then(() => {
-      alert("判词已复制到剪贴板！\n快去粘贴分享给朋友吧！");
+      alert("判词已复制！");
     }).catch(() => {
       console.error("Copy failed");
     });
@@ -86,63 +82,54 @@ const EventDisplay: React.FC<Props> = ({
             {event.isEnding ? event.endingTitle : "新的篇章"}
           </h2>
           <div className="prose prose-lg prose-stone max-w-none">
-            <p className="text-lg leading-loose text-stone-700 font-serif text-justify">
+            <p className="text-lg leading-loose text-stone-700 font-serif text-justify whitespace-pre-wrap">
               {event.text}
             </p>
           </div>
         </div>
 
         {/* Fate Card Display at Ending */}
-        {event.isEnding && (
+        {event.isEnding && activeFateCard && (
            <div className="my-8 flex flex-col items-center gap-6">
               <div ref={cardRef} className="w-full flex justify-center p-2 rounded-lg bg-transparent">
-                {activeFateCard ? (
                   <div className="animate-float-in w-full flex justify-center">
                       <FateCard card={activeFateCard} />
                   </div>
-                ) : (
-                  <div className="w-full max-w-sm h-[400px] border-2 border-dashed border-stone-300 rounded-lg flex flex-col items-center justify-center text-stone-400 bg-stone-50/50 animate-pulse font-serif">
-                      <span className="material-icons-round text-4xl mb-2 opacity-50">auto_stories</span>
-                      <span>命运书写中...</span>
-                  </div>
-                )}
               </div>
 
               {/* Card Actions */}
-              {activeFateCard && (
-                 <div className="flex flex-wrap justify-center gap-3 w-full">
-                    <button 
-                      onClick={handleCopyText}
-                      className="px-4 py-2 bg-[#fdfbf7] border border-[#8b1e1e] text-[#8b1e1e] hover:bg-[#fff5f5] rounded-md font-serif text-sm flex items-center gap-2 transition-colors shadow-sm"
-                    >
-                       <span className="material-icons-round text-sm">content_copy</span>
-                       复制判词分享
-                    </button>
+              <div className="flex flex-wrap justify-center gap-3 w-full">
+                 <button 
+                   onClick={handleCopyText}
+                   className="px-4 py-2 bg-[#fdfbf7] border border-[#8b1e1e] text-[#8b1e1e] hover:bg-[#fff5f5] rounded-md font-serif text-sm flex items-center gap-2 transition-colors shadow-sm"
+                 >
+                    <span className="material-icons-round text-sm">content_copy</span>
+                    复制判词
+                 </button>
 
-                    <button 
-                      onClick={handleDownloadCard}
-                      disabled={isSaving}
-                      className="px-4 py-2 bg-stone-200 hover:bg-stone-300 text-stone-800 rounded-md font-serif text-sm flex items-center gap-2 transition-colors disabled:opacity-50"
-                    >
-                       <span className="material-icons-round text-sm">{isSaving ? 'hourglass_top' : 'download'}</span>
-                       {isSaving ? '保存中...' : '保存图片'}
-                    </button>
-                    
-                    <button 
-                      onClick={onOpenFateBook}
-                      className="px-4 py-2 bg-[#8b1e1e] hover:bg-[#a62424] text-[#f5f2e9] rounded-md font-serif text-sm flex items-center gap-2 transition-colors shadow-md"
-                    >
-                       <span className="material-icons-round text-sm">bookmark_added</span>
-                       收入命薄
-                    </button>
-                 </div>
-              )}
+                 <button 
+                   onClick={handleDownloadCard}
+                   disabled={isSaving}
+                   className="px-4 py-2 bg-stone-200 hover:bg-stone-300 text-stone-800 rounded-md font-serif text-sm flex items-center gap-2 transition-colors disabled:opacity-50"
+                 >
+                    <span className="material-icons-round text-sm">{isSaving ? 'hourglass_top' : 'download'}</span>
+                    保存图片
+                 </button>
+                 
+                 <button 
+                   onClick={onOpenFateBook}
+                   className="px-4 py-2 bg-[#8b1e1e] hover:bg-[#a62424] text-[#f5f2e9] rounded-md font-serif text-sm flex items-center gap-2 transition-colors shadow-md"
+                 >
+                    <span className="material-icons-round text-sm">bookmark_added</span>
+                    收入命薄
+                 </button>
+              </div>
            </div>
         )}
 
-        {/* Automatic Social Feed */}
-        {!event.isEnding && (aiComments || loadingAI) && (
-          <SocialFeed comments={aiComments} loading={loadingAI} />
+        {/* Fixed Social Feed */}
+        {!event.isEnding && event.fixedComments && event.fixedComments.length > 0 && (
+          <SocialFeed comments={event.fixedComments} />
         )}
 
       </div>

@@ -22,8 +22,8 @@ export interface GameEvent {
   choices: Choice[];
   isEnding?: boolean;
   endingTitle?: string;
-  poem?: string; // Pre-written poem
-  commentScenario?: string; // Key for the comment library
+  poem?: string; // Pre-written poem for instant display
+  fixedComments?: string[]; // Pre-written comments instead of AI
 }
 
 export interface FateCard {
@@ -38,6 +38,5 @@ export interface GameState {
   attributes: Attributes;
   history: string[]; // List of event IDs visited
   isGameOver: boolean;
-  generatedComments: string[] | null; // Changed to string array for structured comments
   activeFateCard: FateCard | null; // The card currently being shown at ending
 }
