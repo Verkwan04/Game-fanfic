@@ -195,7 +195,7 @@ export const EVENTS: Record<string, GameEvent> = {
         text: "【沉淀】开长篇连载，打磨剧情。",
         nextEventId: "path_long_novel_start", // Redirect to game
         effects: { creativity: -5 },
-        description: "耗费心力，需要灵感判定。"
+        description: "耗费心力，但有机会一战封神。"
       },
       {
         text: "【整活】混论坛/看电影/水群，维持热度。",
@@ -221,7 +221,7 @@ export const EVENTS: Record<string, GameEvent> = {
   // --- PATH: LONG NOVEL WITH MINI-GAME ---
   "path_long_novel_start": {
     id: "path_long_novel_start",
-    text: "你构思了一个宏大的长篇连载。写到一半，卡文了。你坐在电脑前，看着闪烁的光标，大脑一片空白。你需要一次灵感爆发。",
+    text: "你构思了一个宏大的长篇连载。写到一半，卡文了。你坐在电脑前，看着闪烁的光标，大脑一片空白。你需要一次灵感爆发！",
     choices: [], // Trigger mini game
     miniGame: {
       type: 'dice',
@@ -656,18 +656,18 @@ export const EVENTS: Record<string, GameEvent> = {
       // NEW HIDDEN ENDING 1: Cultural Ambassador
       {
         text: "【隐藏】接受官方邀请，成为文化大使。",
-        condition: (s) => s.creativity > 80 && s.legal > 80 && s.popularity > 50,
+        condition: (s) => s.creativity >= 80 && s.legal >= 80 && s.popularity >= 50,
         nextEventId: "ending_cultural_ambassador",
         effects: { money: 1000 },
-        description: "达成隐藏条件：高创作、高法律、高知名"
+        description: "条件：创作>80 法律>80 知名>50"
       },
       // NEW HIDDEN ENDING 2: Fandom Godmother
       {
         text: "【隐藏】整合资源，建立创作者避风港。",
-        condition: (s) => s.trust > 80 && s.money > 800 && s.eq > 50,
+        condition: (s) => s.trust >= 80 && s.money >= 800 && s.eq >= 50,
         nextEventId: "ending_godmother",
         effects: {},
-        description: "达成隐藏条件：高信任、高金钱、高情商"
+        description: "条件：信任>80 金钱>800 情商>50"
       },
       {
         text: "我不甘心！我要转型职业作家！(高难度)",
@@ -827,7 +827,7 @@ export const EVENTS: Record<string, GameEvent> = {
   // New Good Ending 1
   "ending_cultural_ambassador": {
     id: "ending_cultural_ambassador",
-    text: "【结局：文化大使】\n你因为对原作极其深刻的理解和高超的二创水平，被官方版权方注意到。他们不仅没有告你，反而邀请你参与官方衍生作品的编剧。你用实力证明，同人不仅仅是依附，更是共生。你在主流媒体上侃侃而谈，让更多人理解了这个小众圈子的美好。",
+    text: "【结局：文化大使】\n你因对原作极其深刻的理解和高超的二创水平，被官方版权方注意到。他们邀请你参与官方衍生作品的编剧。你用实力证明，同人不仅仅是依附，更是共生。你在主流媒体上侃侃而谈，让更多人理解了这个小众圈子的美好。",
     choices: [],
     isEnding: true,
     endingTitle: "结局：文化大使",

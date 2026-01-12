@@ -13,8 +13,6 @@ const DiceGame: React.FC<Props> = ({ onRollComplete }) => {
     setIsRolling(true);
     setResult(null);
 
-    // Sound effect could go here
-
     // Animation duration
     setTimeout(() => {
       const newResult = Math.floor(Math.random() * 6) + 1;
@@ -31,7 +29,7 @@ const DiceGame: React.FC<Props> = ({ onRollComplete }) => {
   return (
     <div className="w-full flex flex-col items-center justify-center p-6 bg-stone-100/50 rounded-lg border-2 border-dashed border-stone-300 my-4">
       <h3 className="font-serif text-lg font-bold text-stone-700 mb-4 tracking-widest">
-        运势判定
+        灵感判定 · 投掷运势
       </h3>
       
       <div className="relative w-24 h-24 mb-6 perspective-1000">
@@ -45,7 +43,7 @@ const DiceGame: React.FC<Props> = ({ onRollComplete }) => {
                     {getActionIcon(result)}
                  </span>
               ) : (
-                 <span className="material-icons-round text-5xl opacity-50">help_outline</span>
+                 <span className="material-icons-round text-5xl opacity-50">casino</span>
               )}
            </div>
         </div>
@@ -63,13 +61,13 @@ const DiceGame: React.FC<Props> = ({ onRollComplete }) => {
         onClick={rollDice}
         disabled={isRolling || result !== null}
         className={`
-           px-8 py-2 rounded-full font-serif font-bold tracking-widest shadow-lg transition-all
+           px-8 py-3 rounded-full font-serif font-bold tracking-widest shadow-lg transition-all
            ${isRolling || result !== null 
              ? 'bg-stone-300 text-stone-500 cursor-not-allowed' 
-             : 'bg-[#8b1e1e] text-[#f5f2e9] hover:bg-[#a62424] hover:scale-105'}
+             : 'bg-[#8b1e1e] text-[#f5f2e9] hover:bg-[#a62424] hover:scale-105 active:scale-95'}
         `}
       >
-        {isRolling ? '命运流转...' : '掷骰定数'}
+        {isRolling ? '命运流转...' : '掷骰求运'}
       </button>
 
       <style>{`

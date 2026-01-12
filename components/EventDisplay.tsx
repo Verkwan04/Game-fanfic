@@ -76,11 +76,14 @@ const EventDisplay: React.FC<Props> = ({
     const nextId = isSuccess ? event.miniGame.successEventId : event.miniGame.failEventId;
     const effects = isSuccess ? event.miniGame.successEffects : event.miniGame.failEffects;
 
-    onChoice({
-      text: "Dice Result",
-      nextEventId: nextId,
-      effects: effects
-    });
+    // Small delay to show result before moving on
+    setTimeout(() => {
+      onChoice({
+        text: "Dice Result",
+        nextEventId: nextId,
+        effects: effects
+      });
+    }, 500);
   };
 
   return (
