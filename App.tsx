@@ -5,9 +5,11 @@ import StatsPanel from './components/StatsPanel';
 import EventDisplay from './components/EventDisplay';
 import SaveLoadControls from './components/SaveLoadControls';
 import FateBook from './components/FateBook';
+import Disclaimer from './components/Disclaimer';
 
 const SAVE_KEY = 'doujinshi_save_data_v2';
 const ACHIEVEMENTS_KEY = 'doujinshi_achievements_v2';
+const DISCLAIMER_KEY = 'doujinshi_disclaimer_accepted_v1';
 
 const App: React.FC = () => {
   const [gameState, setGameState] = useState<GameState>({
@@ -21,7 +23,7 @@ const App: React.FC = () => {
   const [hasSave, setHasSave] = useState(false);
   const [achievements, setAchievements] = useState<Record<string, FateCard>>({});
   const [showFateBook, setShowFateBook] = useState(false);
-  const [lotteryResult, setLotteryResult] = useState<string | null>(null);
+  const [showDisclaimer, setShowDisclaimer] = useState(true);
 
   // Load Save and Achievements
   useEffect(() => {
@@ -34,6 +36,19 @@ const App: React.FC = () => {
         setAchievements(JSON.parse(savedAchievements));
       } catch (e) { console.error("Failed to load achievements", e); }
     }
+    
+    // Check if disclaimer was already accepted (optional, but requested flow implies start page)
+    // The prompt implies "at the start page", so we show it every session for safety, 
+    // or we can skip if already accepted. 
+    // Given the strict legal nature of the text, let's force it if it's not in session storage?
+    // Let's rely on component state default = true. 
+    // If user wants it permanently accepted, uncomment below:
+    /*
+    const accepted = localStorage.getItem(DISCLAIMER_KEY);
+    if (accepted === 'true') {
+       setShowDisclaimer(false);
+    }
+    */
   }, []);
 
   const currentEvent = EVENTS[gameState.currentEventId];
@@ -79,10 +94,6 @@ const App: React.FC = () => {
             activeFateCard: null
         }));
         
-        // Temporarily show result (hacky way using alert or just state?)
-        // Better: let's inject a "flash message" into the next event text?
-        // Simpler: Just update state and let user see updated stats.
-        // Or show an alert.
         alert(`【抽签结果】\n你抽到了：${randomArchetype.name}\n${randomArchetype.desc}`);
         return;
     }
@@ -118,6 +129,8 @@ const App: React.FC = () => {
       try {
         const parsed = JSON.parse(saved);
         setGameState(parsed);
+        // Ensure we hide disclaimer if loading from a save
+        setShowDisclaimer(false); 
       } catch (e) {
         console.error("Failed to load save", e);
       }
@@ -133,6 +146,15 @@ const App: React.FC = () => {
       activeFateCard: null
     });
   };
+
+  const handleAcceptDisclaimer = () => {
+    setShowDisclaimer(false);
+    // localStorage.setItem(DISCLAIMER_KEY, 'true'); // Persist if needed
+  };
+
+  if (showDisclaimer) {
+    return <Disclaimer onConfirm={handleAcceptDisclaimer} />;
+  }
 
   if (!currentEvent) {
     return <div className="min-h-screen flex items-center justify-center text-stone-400 font-serif">Loading Universe...</div>;
