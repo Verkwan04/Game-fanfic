@@ -2,16 +2,10 @@
 <html lang="zh-CN">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <title>同人女模拟器 | 创作、热爱与混沌</title>
     <meta name="description" content="一款关于同人创作的文字冒险游戏。在热爱与现实的夹缝中，你能坚持多久？" />
     <meta name="theme-color" content="#f5f2e9" />
-    
-    <!-- iOS / App Store Specific Settings -->
-    <meta name="apple-mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-    <meta name="apple-mobile-web-app-title" content="同人模拟器" />
-    <meta name="format-detection" content="telephone=no" />
     
     <!-- Open Graph / Social Media Sharing -->
     <meta property="og:type" content="website" />
@@ -29,11 +23,6 @@
         --ink-primary: #1a1a1a;
         --ink-secondary: #4a4a4a;
         --stamp-red: #8b1e1e;
-        /* iOS Safe Area Variables */
-        --sat: env(safe-area-inset-top);
-        --sab: env(safe-area-inset-bottom);
-        --sal: env(safe-area-inset-left);
-        --sar: env(safe-area-inset-right);
       }
 
       body {
@@ -43,19 +32,6 @@
         color: var(--ink-primary);
         overflow-x: hidden;
         -webkit-tap-highlight-color: transparent;
-        /* Prevent elastic scrolling on iOS */
-        overscroll-behavior-y: none;
-        /* Handle Safe Areas */
-        padding-top: var(--sat);
-        padding-bottom: var(--sab);
-        padding-left: var(--sal);
-        padding-right: var(--sar);
-      }
-      
-      /* Disable text selection for app-like feel */
-      .no-select {
-        -webkit-user-select: none;
-        user-select: none;
       }
       
       .serif { font-family: 'Noto Serif SC', serif; }
@@ -129,8 +105,7 @@
 }
 </script>
 </head>
-  <body class="min-h-screen no-select">
+  <body class="min-h-screen">
     <div id="root"></div>
-    <script type="module" src="/index.tsx"></script>
   </body>
 </html>

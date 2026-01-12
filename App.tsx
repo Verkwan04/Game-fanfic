@@ -1,13 +1,13 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { GameState, Choice, Attributes, FateCard } from './types';
-import { INITIAL_STATS, EVENTS } from './constants';
+import { INITIAL_STATS, EVENTS, COMMENT_LIBRARY } from './constants';
 import StatsPanel from './components/StatsPanel';
 import EventDisplay from './components/EventDisplay';
 import SaveLoadControls from './components/SaveLoadControls';
 import FateBook from './components/FateBook';
-import { generateFanComments, generateFateCard } from './services/geminiService';
+import { generateFateCard } from './services/geminiService';
 
-const SAVE_KEY = 'doujinshi_save_data_v1';
+const SAVE_KEY = 'doujinshi_save_data_v2'; 
 const ACHIEVEMENTS_KEY = 'doujinshi_achievements_v1';
 
 const App: React.FC = () => {
@@ -17,7 +17,6 @@ const App: React.FC = () => {
     history: ['start'],
     isGameOver: false,
     generatedComments: null,
-    isLoadingAI: false,
     activeFateCard: null
   });
   
@@ -38,60 +37,57 @@ const App: React.FC = () => {
     }
   }, []);
 
-  const currentEvent = EVENTS[gameState.currentEventId];
+  const currentEvent = EVENTS[gameState.currentEventId] || EVENTS['start'];
 
-  // Logic for special checkpoints (Simplified: most logic is now in constants.ts via choices)
+  // Handle Side Effects (Ending Generation / Comment Generation)
   useEffect(() => {
     if (!currentEvent) return;
-    
-    // Fallback if event is missing
-    if (!EVENTS[gameState.currentEventId]) {
-       console.error("Event not found:", gameState.currentEventId);
-    }
 
-  }, [gameState.currentEventId]);
-
-  // Handle Ending: Generate Fate Card
-  useEffect(() => {
-    if (currentEvent && currentEvent.isEnding) {
+    // 1. Handle Ending
+    if (currentEvent.isEnding) {
       handleEndingReached(
         currentEvent.id, 
         currentEvent.endingTitle || "未知结局", 
         currentEvent.text,
         currentEvent.poem
       );
+      setGameState(prev => ({ ...prev, generatedComments: null }));
+      return;
+    }
+
+    // 2. Handle Social Comments (Synchronous from Library)
+    if (currentEvent.commentScenario) {
+      const pool = COMMENT_LIBRARY[currentEvent.commentScenario];
+      if (pool && pool.length > 0) {
+        // Shuffle and pick 3 unique comments
+        const shuffled = [...pool].sort(() => 0.5 - Math.random());
+        setGameState(prev => ({ ...prev, generatedComments: shuffled.slice(0, 3) }));
+      } else {
+         setGameState(prev => ({ ...prev, generatedComments: null }));
+      }
+    } else {
+      setGameState(prev => ({ ...prev, generatedComments: null }));
     }
   }, [gameState.currentEventId]);
 
   const handleEndingReached = async (endingId: string, title: string, text: string, predefinedPoem?: string) => {
-    // 1. Check if we already have this card in achievements (Full Cache)
+    // 1. Check cache
     if (achievements[endingId]) {
       setGameState(prev => ({ ...prev, activeFateCard: achievements[endingId] }));
       return;
     }
 
-    // 2. Immediate Feedback: Show card with text/poem immediately, image loading
-    const tempCard: FateCard = {
-      id: endingId,
-      title,
-      poem: predefinedPoem || "命运推演中...",
-      imageUrl: "", // Empty means loading
-      timestamp: Date.now()
-    };
-    
-    // Set active card immediately so UI pops up
-    setGameState(prev => ({ ...prev, activeFateCard: tempCard }));
-
-    // 3. Background: Fetch Image
-    const { poem, imageUrl } = await generateFateCard(title, text, predefinedPoem);
+    // 2. Generate Poem (AI or predefined)
+    const { poem } = await generateFateCard(title, text, predefinedPoem);
     
     const finalCard: FateCard = {
-      ...tempCard,
-      poem: poem, // Use the confirmed poem (should be same as predefined)
-      imageUrl: imageUrl // The generated image
+      id: endingId,
+      title,
+      poem,
+      timestamp: Date.now()
     };
 
-    // 4. Update State and Storage
+    // 3. Update
     setAchievements(prev => {
       const updated = { ...prev, [endingId]: finalCard };
       localStorage.setItem(ACHIEVEMENTS_KEY, JSON.stringify(updated));
@@ -100,25 +96,6 @@ const App: React.FC = () => {
 
     setGameState(prev => ({ ...prev, activeFateCard: finalCard }));
   };
-
-  // Wrapper to trigger AI comments automatically
-  const triggerAIComments = useCallback(async (eventId: string, stats: Attributes) => {
-    const evt = EVENTS[eventId];
-    if (!evt || evt.isEnding) return;
-
-    setGameState(prev => ({ ...prev, isLoadingAI: true, generatedComments: null }));
-    
-    await new Promise(r => setTimeout(r, 800)); 
-
-    const comments = await generateFanComments(evt.text, stats);
-
-    setGameState(prev => ({ 
-      ...prev, 
-      isLoadingAI: false,
-      generatedComments: comments
-    }));
-  }, []);
-
 
   const handleChoice = (choice: Choice) => {
     const newStats = { ...gameState.attributes };
@@ -132,16 +109,26 @@ const App: React.FC = () => {
       });
     }
 
+    // DEFING FATE LOGIC (Random "Miracle" Probability)
+    let nextId = choice.nextEventId;
+    const isNextEnding = EVENTS[nextId]?.isEnding;
+    
+    if (!isNextEnding && nextId !== 'start' && nextId !== 'lottery_draw') {
+       const fateRoll = Math.random();
+       if (fateRoll < 0.02) { // 2% chance
+          console.log("Defying Fate Triggered!");
+          nextId = 'event_miracle';
+       }
+    }
+
     setGameState(prev => ({
       ...prev,
-      currentEventId: choice.nextEventId,
+      currentEventId: nextId,
       attributes: newStats,
-      history: [...prev.history, choice.nextEventId],
-      generatedComments: null
+      history: [...prev.history, nextId],
+      generatedComments: null,
+      activeFateCard: null
     }));
-
-    // Trigger AI for the NEXT event
-    triggerAIComments(choice.nextEventId, newStats);
   };
 
   const handleSave = () => {
@@ -154,7 +141,9 @@ const App: React.FC = () => {
     if (saved) {
       try {
         const parsed = JSON.parse(saved);
-        setGameState(parsed);
+        if (parsed && parsed.currentEventId && parsed.attributes) {
+           setGameState(parsed);
+        }
       } catch (e) {
         console.error("Failed to load save", e);
       }
@@ -164,18 +153,13 @@ const App: React.FC = () => {
   const handleRestart = () => {
     setGameState({
       currentEventId: 'start',
-      attributes: { ...INITIAL_STATS },
+      attributes: { ...INITIAL_STATS }, 
       history: ['start'],
       isGameOver: false,
       generatedComments: null,
-      isLoadingAI: false,
       activeFateCard: null
     });
   };
-
-  if (!currentEvent) {
-    return <div className="min-h-screen flex items-center justify-center text-stone-400 font-serif">Loading Universe...</div>;
-  }
 
   return (
     <div className="min-h-screen w-full flex items-center justify-center p-4 md:p-8">
@@ -215,7 +199,7 @@ const App: React.FC = () => {
             onChoice={handleChoice} 
             attributes={gameState.attributes}
             aiComments={gameState.generatedComments}
-            loadingAI={gameState.isLoadingAI}
+            loadingAI={false} 
             activeFateCard={gameState.activeFateCard}
             onRestart={handleRestart}
             onOpenFateBook={() => setShowFateBook(true)}
@@ -234,15 +218,15 @@ const App: React.FC = () => {
             <ul className="space-y-3 list-none font-serif">
               <li className="flex items-start gap-2">
                 <span className="w-1.5 h-1.5 rounded-full bg-stone-400 mt-1.5"></span>
-                <span><b>收集命签</b>：每次达成结局，命运之书都会记录你的判词。</span>
+                <span><b>开局抽签</b>：不同的出身决定了你的初始资源。</span>
               </li>
               <li className="flex items-start gap-2">
                 <span className="w-1.5 h-1.5 rounded-full bg-stone-400 mt-1.5"></span>
-                <span>请随时<b>存档</b>，某些结局不可逆。</span>
+                <span><b>逆天改命</b>：极小概率触发奇迹事件。</span>
               </li>
               <li className="flex items-start gap-2">
                 <span className="w-1.5 h-1.5 rounded-full bg-stone-400 mt-1.5"></span>
-                <span>点击左上角红印<b>【命】</b>字按钮查看画廊。</span>
+                <span><b>善用存档</b>：江湖险恶，随时可能结局。</span>
               </li>
             </ul>
           </div>

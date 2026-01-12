@@ -1,935 +1,448 @@
 import { Attributes, GameEvent } from "./types";
 
+// --- PERSONAS (Lottery System) ---
+export const PERSONAS = [
+  {
+    id: "rich_kid",
+    name: "富二代",
+    desc: "家里有矿，用爱发电。",
+    stats: { creativity: 30, legal: 40, eq: 50, popularity: 10, stress: 0, money: 2000, trust: 10 }
+  },
+  {
+    id: "law_student",
+    name: "法学生",
+    desc: "知法懂法，甚至想普法。",
+    stats: { creativity: 40, legal: 90, eq: 40, popularity: 5, stress: 30, money: 300, trust: 0 }
+  },
+  {
+    id: "writer",
+    name: "中文系才女",
+    desc: "文笔惊艳，但心思敏感。",
+    stats: { creativity: 90, legal: 50, eq: 30, popularity: 0, stress: 40, money: 400, trust: 0 }
+  },
+  {
+    id: "social_butterfly",
+    name: "交际花",
+    desc: "混圈高手，八面玲珑。",
+    stats: { creativity: 20, legal: 40, eq: 90, popularity: 50, stress: 10, money: 500, trust: 30 }
+  },
+  {
+    id: "high_schooler",
+    name: "高中生",
+    desc: "作业很多，热情很高。",
+    stats: { creativity: 60, legal: 20, eq: 40, popularity: 0, stress: 80, money: 50, trust: 10 }
+  }
+];
+
 export const INITIAL_STATS: Attributes = {
   creativity: 50,
   legal: 50,
   eq: 50,
-  popularity: 10,
+  popularity: 0,
   stress: 20,
-  money: 500,
+  money: 0,
   trust: 0
 };
 
-// Simplified Event Tree
+// --- COMMENT LIBRARY ---
+// Pre-fabricated, "Alive" feeling comments. Length 50-100 chars.
+export const COMMENT_LIBRARY: Record<string, string[]> = {
+  "start": [
+    "刚搜tag看到的，虽然文笔还有点稚嫩，但是脑洞很大！大大加油呀，这种冷门CP能有粮吃我就很满足了，千万不要坑！蹲一个后续~",
+    "刷到这篇真的惊喜，感觉人物对话特别还原，没有那种OOC的尴尬感。就是更得有点少，不够看啊！大大快去码字，生产队的驴都不敢这么歇！",
+    "萌新入坑！节奏虽然稍微慢了一点，但是氛围感营造得很好。特别是中间那段心理描写，真的戳到我了。已收藏，期待太太的下一章！",
+    "路过留爪。设定的切入点很有意思，感觉后续会有大刀？瑟瑟发抖。只要不虐我CP怎么都行，大大请多写点甜的吧，孩子要饿死了。",
+    "终于有人写这个梗了！之前就一直想看这种设定的文，大大简直是我的互联网嘴替。行文很流畅，一口气读完，催更催更！"
+  ],
+  "praise_high": [
+    "卧槽卧槽！这是什么神仙太太下凡！那个眼神拉丝的描写看得我直接在床上扭成一条蛆！张力拉满，性张力爆棚！大大我是你的狗！",
+    "即使是BE我也认了，写得太有宿命感了。大大你是懂怎么往读者心口捅刀子的... 今晚的眼泪不值钱，全是为了他们的绝美爱情。",
+    "这文笔真的绝了，画面感太强了，感觉像是在看电影。每一个字都戳在我的XP上，建议直接出书！大大把二维码放出来，我要给你打钱！",
+    "这就是成年人的快乐吗？虽然有点OOC但是我也爱！这辆车开得太稳了，车门我已经焊死了，谁也别想下车！摩多摩多！",
+    "看完直接失语，这种灵魂的共鸣感太强了。不仅是爱情，更是一种救赎啊。感谢大大带来这么美好的故事，此生无悔入此坑！"
+  ],
+  "praise_low": [
+    "打卡。虽然有些地方逻辑不太通，但是作为新人已经很不错了。建议排版再优化一下，看着会更舒服。加油！",
+    "感觉人物稍微有点崩，不过为了吃粮我可以忽略。希望大大下章能把受的性格再捉摸一下，现在有点太弱气了。",
+    "不更了吗？虽然热度不高，但是这里还有一个活人在看啊！大大别灰心，冷圈就是这样的，坚持产粮总会被看到的。",
+    "文笔略显小白，但是梗还不错。如果能把背景描写再丰富一点就好了。先收藏养肥了再看，希望不要坑掉哦。",
+    "看得出作者很努力在写了，但是剧情推进有点太慢了，看了半天不知道重点在哪里。建议加快节奏，不然很容易弃文的。"
+  ],
+  "flame_ooc": [
+    "避雷。这也太OOC了吧？攻完全变成了个恋爱脑油腻男，受变成了娇妻，作者真的看过原著吗？为了推剧情强行降智，告辞。",
+    "无法理解，为什么要给他们加这种奇怪的设定？完全毁了人物原本的魅力。虽然是同人，但也不能只借个名字就乱写吧？",
+    "纯路人，看了两眼觉得很尴尬。这文笔是小学生写的吗？现在的同人门槛真的越来越低了，什么人都能来写两笔。",
+    "这也能叫同人？完全就是套皮文学。把名字遮住根本不知道写的是谁。请尊重一下原著角色好吗？这种垃圾文还是别发出来现眼了。",
+    "本来是冲着tag进来的，结果被雷得外焦里嫩。这种只会谈恋爱的脑残剧情真的看够了，能不能有点深度？果断取关拉黑。"
+  ],
+  "drama_ai": [
+    "这文风怎么看怎么像AI生成的，逻辑前后矛盾，还有很多莫名其妙的形容词。现在的同人女连字都懒得码了吗？抵制尸块拼接！",
+    "挂人墙见。实锤了，这几段描写完全就是把原本的词条喂给AI生成的。这种没有灵魂的垃圾文字就别发出来恶心人了。",
+    "虽然作者澄清了，但我还是觉得很怪。那种生硬的转折和毫无感情的景物描写，真的很像GPT出来的东西。大家自己分辨吧。",
+    "现在的AI小鬼真的多，以为随便生成一点东西就能骗流量。同人创作的核心是爱，连爱都没有还写什么？滚出同人圈！",
+    "有一说一，这段话的语序都不通顺，明显是机翻或者AI润色的。连最基本的真诚都没有，还指望读者给你买单？做梦去吧。"
+  ],
+  "drama_legal": [
+    "博主你这篇文的尺度是不是有点太大了？虽然我也爱看，但是最近风声紧，建议还是锁了吧，或者走外链。安全第一啊！",
+    "已举报。拿着搞黄色的东西当文学，还发在公共平台，不仅毁角色还教坏未成年。网警已经在路上了，等着喝茶吧。",
+    "这真的是可以在这里发的吗？太刑了... 虽然很刺激，但是为了大家能长久有粮吃，还是低调一点比较好。删了吧。",
+    "看得我心惊肉跳，这车速已经超速了吧？虽然很香，但是真的怕大大被请喝茶。建议转战AO3或者爱发电，国内平台太危险了。",
+    "这种违规内容怎么还没被夹？审核都在睡觉吗？为了净化网络环境，我已经随手举报了。不谢，请叫我红领巾。"
+  ],
+  "sales_hype": [
+    "通贩什么时候开？钱包已准备好！错过了一贩后悔一年，这次一定要抢到！求求大大别限购，让我买爆！",
+    "这个封面设计太好看了吧！虽然家里已经没地方放了，但是为了这个特典我也要买！希望能有签绘，大大看看孩子！",
+    "啊啊啊啊又是手慢无！黄牛能不能滚啊！大大能不能二刷？求求了，哪怕是预售等半年我也愿意！孩子只想拥有一本实体书。",
+    "实物图也太美了吧，这烫金工艺简直绝了！买来收藏都值了。已经在定闹钟了，希望能抢到前一百名的特典！",
+    "All in！成年人不做选择，我全都要！大大出的周边必须支持，哪怕吃土也要买。期待发货，已经迫不及待想摸到实体了！"
+  ],
+  "sales_scam": [
+    "避雷！五十块钱的本子你就给我用这种纸？印刷模糊得连字都看不清，这完全是欺诈吧？把读者当韭菜割吗？",
+    "作者是不是卷钱跑路了？发货拖了三个月，客服也不回消息。吃相太难看了，以后再也不买这家的本子了。退钱！",
+    "大家别买！这本所谓的“精装版”就是把lofter上的文复制粘贴打印出来，连排版都没改，错别字都在。真的太下头了。",
+    "第一次见到这么离谱的色差，跟宣图完全是两个东西。这就是所谓的“实物为准”吗？完全是虚假宣传！必须维权到底！",
+    "无语死了，包装简陋得要命，书角都撞坏了。找客服理论还被拉黑。这种垃圾作者就该挂出来避雷，大家千万别上当！"
+  ]
+};
+
+// --- EVENT TREE (Expanded & Harder) ---
 export const EVENTS: Record<string, GameEvent> = {
-  // --- START ---
+  // --- START & LOTTERY ---
   "start": {
     id: "start",
-    text: "你是一名普通的大学生，也是一名隐藏的“同人女”。最近你沉迷于一部名为《XXX》的热门作品，这对CP让你磕生磕死。看着圈内粮仓日渐干涸，你心中的创作欲蠢蠢欲动——",
+    text: "混沌初开，你站在命运的转盘前。在这个充满热爱与风险的同人世界里，你将扮演什么角色？",
     choices: [
       {
-        text: "我要自己产粮！为爱发电！",
-        nextEventId: "choose_genre",
-        effects: { creativity: 5, stress: 5 }
-      },
-      {
-        text: "先当个快乐的读者，吃一口是一口。",
-        nextEventId: "consumer_path",
-        effects: { stress: -10, creativity: -5 }
+        text: "求签问卦，开启人生",
+        nextEventId: "lottery_draw",
+        description: "随机抽取你的初始人设"
       }
     ]
   },
-  "consumer_path": {
-    id: "consumer_path",
-    text: "你每天快乐刷手机，虽然没有压力，但看着别人产出的粮总是觉得不对胃口，OOC太多了！你的脑洞无处安放。",
+  "lottery_draw": {
+    id: "lottery_draw",
+    text: "你摇动签筒，一支竹签落地。签上写着...",
+    choices: PERSONAS.map(p => ({
+      text: `【${p.name}】${p.desc}`,
+      nextEventId: "start_real",
+      effects: p.stats,
+      description: `初始资金: ¥${p.stats.money}`
+    }))
+  },
+  "start_real": {
+    id: "start_real",
+    text: "身份已定。你刚入坑一部热门作品《XXX》，看着粮仓里良莠不齐的作品，你决定...",
     choices: [
-      {
-        text: "不行，这口粮我必须自己做！",
-        nextEventId: "choose_genre",
-        effects: { creativity: 10 }
-      },
-      {
-        text: "算了，躺平真舒服。",
-        nextEventId: "ending_normal",
-        effects: {}
-      }
+      { text: "我要产粮！拯救饥荒！", nextEventId: "choose_genre", effects: { stress: 5 } },
+      { text: "先当读者，只看不写。", nextEventId: "consumer_loop", effects: { stress: -5 } }
     ]
   },
 
-  // --- GENRE SELECTION ---
+  // --- EARLY GAME ---
+  "consumer_loop": {
+    id: "consumer_loop",
+    text: "你每天快乐刷手机，虽然没有压力，但看着别人产出的粮，你越来越挑剔。",
+    choices: [
+      { text: "忍不住了，我要自己动笔！", nextEventId: "choose_genre", effects: { creativity: 10 } },
+      { text: "继续躺平，催更就好。", nextEventId: "ending_normal_consumer", effects: {} }
+    ]
+  },
   "choose_genre": {
     id: "choose_genre",
-    text: "你打开了文档，光标在空白页上闪烁。第一篇文，你打算写什么题材？",
+    text: "打开文档，光标闪烁。第一篇文，你打算写什么？",
     choices: [
-      {
-        text: "全年龄向甜饼 (清水)",
-        nextEventId: "platform_choice",
+      { 
+        text: "全年龄向甜饼 (清水)", 
+        nextEventId: "platform_choice", 
         effects: { legal: 5, popularity: 5 },
-        description: "安全，受众广，但竞争大。"
+        description: "安全，但难以出头"
+      },
+      { 
+        text: "极度刺激的深夜车 (R18)", 
+        nextEventId: "platform_choice_risky", 
+        effects: { legal: -10, popularity: 30, stress: 10 },
+        description: "自带流量，自带风险"
       },
       {
-        text: "极其刺激的深车 (R18)",
-        nextEventId: "platform_choice_risky",
-        effects: { legal: -10, popularity: 20, stress: 5 },
-        description: "高风险，高热度，容易被封号。"
+        text: "晦涩难懂的原著向考据",
+        nextEventId: "publish_flop",
+        effects: { creativity: -10, stress: 20 },
+        description: "容易没人看"
       }
     ]
   },
-
-  // --- PLATFORM SELECTION ---
   "platform_choice": {
     id: "platform_choice",
-    text: "写完了！是一篇甜甜的清水文。你打算发在哪里？",
+    text: "清水甜文写好了，发在哪里？",
     choices: [
-      {
-        text: "老福特 (国内最大的同人社区)",
-        nextEventId: "first_feedback",
-        effects: { popularity: 10 }
-      },
-      {
-        text: "微博 (流量大，是非多)",
-        nextEventId: "first_feedback_weibo",
-        effects: { popularity: 15, stress: 10 }
-      }
+      { text: "老福特 (主流社区)", nextEventId: "feedback_route_a", effects: { popularity: 10 } },
+      { text: "微博 (流量广场)", nextEventId: "feedback_route_b", effects: { popularity: 15, stress: 10 } }
     ]
   },
   "platform_choice_risky": {
     id: "platform_choice_risky",
-    text: "你写了一篇香艳的豪车，自己看了都脸红。你打算发在哪里？",
+    text: "这车速太快，国内平台发不出来。你决定...",
     choices: [
-      {
-        text: "老福特 (用图片/外链尝试规避)",
-        nextEventId: "danger_check_1",
-        effects: { legal: -5, stress: 10 }
-      },
-      {
-        text: "AO3 (虽然要翻墙，但很自由)",
-        nextEventId: "ao3_feedback",
-        effects: { legal: 5, popularity: 5 } 
-      }
+      { text: "微博发图链/倒置图", nextEventId: "danger_early", effects: { legal: -20, popularity: 40, stress: 15 } },
+      { text: "AO3 (虽然要翻墙)", nextEventId: "feedback_ao3", effects: { legal: 5, popularity: 10 } }
     ]
   },
 
-  // --- FEEDBACK & CONFLICT ---
-  "first_feedback": {
-    id: "first_feedback",
-    text: "发布后，反响不错。但有一个杠精评论：“你这写的人物OOC了，原作里《XXX》根本不是这样的性格。”",
+  // --- FEEDBACK LOOPS ---
+  "publish_flop": {
+    id: "publish_flop",
+    text: "文章发出去三天，点击量只有个位数。你的热情被浇了一盆冷水。",
     choices: [
-      {
-        text: "温柔解释，虚心接受。",
-        nextEventId: "mid_game_hub", // Redirect to new flow
-        effects: { eq: 10, popularity: 5 }
-      },
-      {
-        text: "挂他！怼回去！“笔给你你来写？”",
-        nextEventId: "drama_check",
-        effects: { eq: -10, stress: 10, popularity: 10 } 
-      },
-      {
-        text: "无视，删评。",
-        nextEventId: "mid_game_hub", // Redirect to new flow
-        effects: { stress: -5 }
-      }
-    ]
+      { text: "坚持就是胜利！继续写！", nextEventId: "grind_loop", effects: { stress: 10, creativity: 5 } },
+      { text: "果然我不适合，退圈。", nextEventId: "ending_giveup", effects: {} }
+    ],
+    commentScenario: "praise_low"
   },
-  
-  "first_feedback_weibo": {
-    id: "first_feedback_weibo",
-    text: "微博上的热度很高，但你也引来了一群奇怪的人。有人转发说：“这画风/文风怎么像AI生成的？现在同人女都这么敷衍了吗？”",
+  "feedback_route_a": {
+    id: "feedback_route_a",
+    text: "反响平平，但有几个暖心评论。不过也有人说你人物OOC。",
     choices: [
-      {
-        text: "【AI猎巫】放出过程图/大纲自证清白！",
-        nextEventId: "ai_accusation_proof",
-        effects: { stress: 20, popularity: 5 }
-      },
-      {
-        text: "不理会，清者自清。",
-        nextEventId: "ai_accusation_ignore",
-        effects: { stress: 10, popularity: -5 }
-      }
+      { text: "虚心接受，下次改进", nextEventId: "grind_loop", effects: { eq: 10, creativity: 5 } },
+      { text: "怼回去！“你行你上”", nextEventId: "drama_early", effects: { eq: -10, popularity: 5 } }
+    ],
+    commentScenario: "start"
+  },
+  "feedback_route_b": {
+    id: "feedback_route_b",
+    text: "在微博上，你的文被转发到了槽吧。一群人正在审判你的文笔。",
+    choices: [
+      { text: "装死不看", nextEventId: "grind_loop", effects: { stress: 10 } },
+      { text: "发长文解释心路历程", nextEventId: "drama_escalation", effects: { stress: 20, popularity: 10 } }
+    ],
+    commentScenario: "flame_ooc"
+  },
+  "feedback_ao3": {
+    id: "feedback_ao3",
+    text: "收获了不少Kudos，但墙内有人挂了你的外链，说你为了流量不要脸。",
+    choices: [
+      { text: "无视", nextEventId: "grind_loop", effects: { stress: 5 } },
+      { text: "锁文跑路", nextEventId: "ending_giveup", effects: { popularity: -10 } }
+    ],
+    commentScenario: "drama_legal"
+  },
+
+  // --- MID GAME GRIND ---
+  "grind_loop": {
+    id: "grind_loop",
+    text: "日子一天天过去，你在这个圈子里浮浮沉沉。接下来的一段时间，你的重心是？",
+    choices: [
+      { text: "【爆肝】开启长篇连载", nextEventId: "long_novel_challenge", effects: { stress: 20, creativity: -10 } },
+      { text: "【社交】混群扩列", nextEventId: "social_drama", effects: { trust: 20, stress: -5 } },
+      { text: "【搞钱】接稿赚外快", nextEventId: "freelance_hell", effects: { money: 100, creativity: -20 } },
+      { text: "【整活】做无料/周边", nextEventId: "merch_risk", effects: { money: -200 } }
     ]
   },
 
-  "ai_accusation_proof": {
-    id: "ai_accusation_proof",
-    text: "你花了一整晚整理时间线和草稿。虽然粉丝信了，但那群猎巫的人只是换了个地方骂：“就算是手搓的，这么丑也不如AI。”",
+  // --- BRANCH: LONG NOVEL ---
+  "long_novel_challenge": {
+    id: "long_novel_challenge",
+    text: "连载是个无底洞。数据惨淡，评论区冷清，你的存稿用完了，卡文卡得想撞墙。",
     choices: [
-      {
-        text: "心态崩了，休息一阵。",
-        nextEventId: "mid_game_hub",
-        effects: { stress: 15, creativity: -10 }
-      }
-    ]
+      { text: "为爱发电，咬牙完结！(需高创作力)", condition: (s) => s.creativity > 60, nextEventId: "novel_success", effects: { popularity: 20, creativity: 20 } },
+      { text: "不管了，坑了它！", nextEventId: "ending_bad_reputation", effects: { popularity: -20 } },
+      { text: "水一水字数，烂尾。", nextEventId: "grind_loop", effects: { popularity: -5 } }
+    ],
+    commentScenario: "praise_low"
   },
-  
-  "ai_accusation_ignore": {
-    id: "ai_accusation_ignore",
-    text: "你没有回应，结果谣言越传越离谱。有人把你挂到了“鉴AI挂人墙”，你的私信充满了谩骂。",
+  "novel_success": {
+    id: "novel_success",
+    text: "你坚持下来了！完结的那一刻，文章被各大推文号转发，你火了。",
     choices: [
-      {
-        text: "这网没法上了...",
-        nextEventId: "ending_cyber_bullying",
-        effects: { stress: 50 }
-      },
-      {
-        text: "强行忍耐，继续更新打脸。",
-        nextEventId: "mid_game_hub",
-        effects: { stress: 30, eq: 20 }
-      }
-    ]
+      { text: "趁热打铁，出个志！", nextEventId: "selling_books_prep", effects: { money: -500 } },
+      { text: "深藏功与名，休息。", nextEventId: "grind_loop", effects: { stress: -20 } }
+    ],
+    commentScenario: "praise_high"
   },
-  
-  "ao3_feedback": {
-    id: "ao3_feedback",
-    text: "在AO3上，你的车收获了大量的“Kudos”。但是有人把你的文搬运到了国内微博，并艾特了网警举报。",
+
+  // --- BRANCH: SOCIAL ---
+  "social_drama": {
+    id: "social_drama",
+    text: "你加了几个亲友群，表面上姐妹情深。某天，你发现有人在背地里截你的图挂你。",
     choices: [
-      {
-        text: "立刻滑跪道歉，删文锁号。",
-        nextEventId: "mid_game_hub",
-        effects: { stress: 20, popularity: -10 }
-      },
-      {
-        text: "装死，反正我是海外IP。",
-        nextEventId: "police_risk_check",
-        effects: { legal: -5 }
-      }
+      { text: "退群保平安", nextEventId: "grind_loop", effects: { trust: -20, stress: 5 } },
+      { text: "撕破脸！挂回去！", nextEventId: "drama_escalation", effects: { popularity: 20, stress: 30, eq: -20 } }
+    ],
+    commentScenario: "flame_ooc"
+  },
+  "drama_early": {
+    id: "drama_early",
+    text: "你忍不住回怼了恶评。结果引来了更多乐子人，你的评论区沦陷了。",
+    choices: [
+      { text: "继续对线！", nextEventId: "drama_escalation", effects: { stress: 20 } },
+      { text: "装死", nextEventId: "grind_loop", effects: { stress: 10 } }
+    ],
+    commentScenario: "flame_ooc"
+  },
+
+  // --- BRANCH: FREELANCE ---
+  "freelance_hell": {
+    id: "freelance_hell",
+    text: "甲方的要求五花八门：“要五彩斑斓的黑”。你改了十版，最后对方说还是第一版好。",
+    choices: [
+      { text: "拿钱办事，忍。", nextEventId: "grind_loop", effects: { money: 200, stress: 30 } },
+      { text: "这就是社畜的预演吗？我不干了。", nextEventId: "ending_slave_early", effects: {} }
     ]
   },
 
-  // --- NEW: MID-GAME HUB (Daily Routine) ---
-  "mid_game_hub": {
-    id: "mid_game_hub",
-    text: "经过初期的尝试，你的账号渐渐步入正轨。接下来的一段时间，你决定把重心放在哪里？",
+  // --- RISKY BUSINESS: BOOKS ---
+  "selling_books_prep": {
+    id: "selling_books_prep",
+    text: "出本是一项大工程。排版、校对、宣图、联系印厂。资金是个大问题。",
     choices: [
-      {
-        text: "【沉淀】开长篇连载，打磨剧情。",
-        nextEventId: "path_long_novel_start", // Redirect to game
-        effects: { creativity: -5 },
-        description: "耗费心力，但有机会一战封神。"
-      },
-      {
-        text: "【整活】混论坛/看电影/水群，维持热度。",
-        nextEventId: "path_forum_surfer",
-        effects: { creativity: -5, popularity: 20, stress: -5, legal: -5 },
-        description: "轻松快乐热度高，但容易卷入是非争议。"
-      },
-      {
-        text: "【扩列】建粉丝群，在圈内交朋友。",
-        nextEventId: "path_social_build",
-        effects: { trust: 20, stress: -10 },
-        description: "寻找同好，分享生活。但人心隔肚皮..."
-      },
-      {
-        text: "【搞钱】出个人志",
-        nextEventId: "selling_books",
-        effects: { money: -100, stress: 15, creativity: 5 },
-        description: "将已有的脑洞实体化，高投入高回报？"
-      }
-    ]
+      { text: "小印量(50本)，只为了纪念", nextEventId: "sales_safe", effects: { money: -500, popularity: 5 } },
+      { text: "我要赚钱！印1000本！", nextEventId: "sales_danger", effects: { money: -2000, stress: 40 } },
+      { text: "搞无料(免费送)，求打赏", nextEventId: "wuliao_scam", effects: { money: -300 } }
+    ],
+    commentScenario: "sales_hype"
+  },
+  "sales_danger": {
+    id: "sales_danger",
+    text: "预售链接一开，秒切。你看着后台几万块的流水，手都在抖。这已经远超“爱好”的范畴了。",
+    choices: [
+      { text: "低调发货，祈祷平安", nextEventId: "police_raid_check", effects: { legal: -30 } },
+      { text: "被人举报非法出版", nextEventId: "ending_jail", effects: {} }
+    ],
+    commentScenario: "sales_hype"
+  },
+  "sales_safe": {
+    id: "sales_safe",
+    text: "虽然亏了本，但看着精美的实体书，你觉得一切都值了。",
+    choices: [
+      { text: "继续在这个圈子发光发热", nextEventId: "grind_loop", effects: { creativity: 10 } },
+      { text: "圆满了，退圈现充。", nextEventId: "ending_normal_happy", effects: {} }
+    ],
+    commentScenario: "praise_high"
+  },
+  "wuliao_scam": {
+    id: "wuliao_scam",
+    text: "你设置了1元链接防刷。结果被人举报“无证经营”。闲鱼封了你的号。",
+    choices: [
+      { text: "心累...", nextEventId: "ending_giveup", effects: {} }
+    ],
+    commentScenario: "sales_scam"
   },
 
-  // --- PATH: LONG NOVEL WITH MINI-GAME ---
-  "path_long_novel_start": {
-    id: "path_long_novel_start",
-    text: "你构思了一个宏大的长篇连载。写到一半，卡文了。你坐在电脑前，看着闪烁的光标，大脑一片空白。你需要一次灵感爆发！",
-    choices: [], // Trigger mini game
-    miniGame: {
-      type: 'dice',
-      threshold: 4, // Need 4, 5, or 6 to succeed
-      successEventId: "long_novel_success",
-      failEventId: "long_novel_fail",
-      successEffects: { creativity: 20, popularity: 10, stress: -10 },
-      failEffects: { creativity: -10, stress: 15 }
-    }
-  },
-
-  "long_novel_fail": {
-    id: "long_novel_fail",
-    text: "【判定失败】你枯坐了一整晚，只写出了两百字，还删了一百九十个字。灵感女神没有眷顾你，你在这个长篇坑里越陷越深，读者开始催更并在评论区发刀片。",
-    choices: [
-      {
-        text: "太累了，断更跑路吧...",
-        nextEventId: "commercial_thought",
-        effects: { stress: -10, popularity: -5 }
-      }
-    ]
-  },
-
-  "long_novel_success": {
-    id: "long_novel_success",
-    text: "【判定大成功！】如神灵附体，你运指如飞，一气呵成写完了最高潮的章节！这一章发布后，评论区炸了，读者都在尖叫流泪。你不仅填完了坑，文笔也得到了极大的升华。",
-    choices: [
-      {
-        text: "趁热打铁，出本纪念！",
-        nextEventId: "selling_books",
-        effects: { creativity: 20, popularity: 15 }
-      },
-      {
-        text: "休息一下，看看有什么变现机会。",
-        nextEventId: "commercial_thought",
-        effects: { creativity: 10 }
-      }
-    ]
-  },
-
-  // --- PATH: FORUM/MOVIE (High Drama) ---
-  "path_forum_surfer": {
-    id: "path_forum_surfer",
-    text: "你最近沉迷于在论坛指点江山，或者拉片看电影找代餐。你在论坛发的“关于XXX角色崩坏的深度分析”被转了几千条，热度爆炸，但评论区也吵翻了天。",
-    choices: [
-      {
-        text: "继续输出观点，黑红也是红！",
-        nextEventId: "drama_escalation",
-        effects: { popularity: 20, stress: 10, legal: -5 }
-      },
-      {
-        text: "见好就收，切回岁月静好模式。",
-        nextEventId: "commercial_thought",
-        effects: { stress: -5 }
-      }
-    ]
-  },
+  // --- DRAMA & DANGER ---
   "drama_escalation": {
     id: "drama_escalation",
-    text: "你的言论激怒了原作粉/对家粉。他们开始深扒你的过往发言，试图寻找你的黑点。你感觉自己处于风暴中心。",
+    text: "事情闹大了。你的三次元信息被扒了出来（开盒）。你的学校/公司收到了举报信。",
     choices: [
-      {
-        text: "硬刚到底！",
-        nextEventId: "drama_check",
-        effects: { stress: 20 }
-      },
-      {
-        text: "滑跪道歉。",
-        nextEventId: "random_crisis_hub",
-        effects: { popularity: -10, eq: -10 }
-      }
-    ]
+      { text: "滑跪道歉，销号跑路", nextEventId: "ending_cyber_bullying", effects: { stress: 50 } },
+      { text: "硬刚到底 (需极高心理素质)", condition: (s) => s.stress < 30 && s.eq > 60, nextEventId: "survived_drama", effects: { popularity: 50, legal: -10 } }
+    ],
+    commentScenario: "drama_legal"
+  },
+  "police_raid_check": {
+    id: "police_raid_check",
+    text: "你的流水太大，被监管部门盯上了。",
+    choices: [
+      { text: "听天由命...", condition: (s) => s.legal > 60, nextEventId: "ending_tea", effects: {} },
+      { text: "完蛋了...", condition: (s) => s.legal <= 60, nextEventId: "ending_jail", effects: {} }
+    ],
+    commentScenario: "drama_legal"
+  },
+  "danger_early": {
+    id: "danger_early",
+    text: "你的擦边球打得太好了，吸引了大量流量，也引来了网警。",
+    choices: [
+      { text: "我就蹭蹭不进去...", nextEventId: "ending_tea", effects: {} }
+    ],
+    commentScenario: "drama_legal"
+  },
+  "survived_drama": {
+    id: "survived_drama",
+    text: "你凭借强大的内心挺过了网暴。现在的你是钮祜禄·同人女，黑红也是红。",
+    choices: [
+      { text: "转型职业网红/作家", nextEventId: "ending_influencer", effects: {} },
+      { text: "继续写我的文", nextEventId: "grind_loop", effects: {} }
+    ],
+    commentScenario: "praise_high"
   },
 
-  // --- PATH: SOCIAL / BETRAYAL ---
-  "path_social_build": {
-    id: "path_social_build",
-    text: "你建了一个名为“XXX养老院”的粉丝群，还加了几个聊得来的亲友。大家每天一起磕CP，吐槽三次元的烦恼。你感觉找到了组织。",
+  // --- SPECIAL: DEFYING FATE EVENT ---
+  "event_miracle": {
+    id: "event_miracle",
+    text: "【逆天改命】在你最迷茫的时候，一位退圈多年的大神突然联系了你，不仅转发了你的作品，还把她的人脉资源都推给了你。这是百万分之一的运气！",
     choices: [
-      {
-        text: "不仅聊CP，还分享三次元生活（自拍/工作/炫富）。",
-        nextEventId: "social_deepen_risky",
-        effects: { trust: 20, stress: -10 },
-        description: "关系越来越铁，但也暴露了隐私。"
-      },
-      {
-        text: "保持距离，只聊二次元。",
-        nextEventId: "commercial_thought",
-        effects: { trust: 5 }
+      { 
+        text: "抓住机会，飞升成神！", 
+        nextEventId: "ending_legend", 
+        effects: { popularity: 100, money: 5000, creativity: 100 },
+        description: "天选之子" 
       }
-    ]
-  },
-  "social_deepen_risky": {
-    id: "social_deepen_risky",
-    text: "你和群里的“亲友”无话不谈。你告诉她们你最近升职加薪了，还晒了男朋友送的礼物。大家都夸你是“现充赢家”。直到有一天——",
-    choices: [
-      {
-        text: "查看发生了什么...",
-        nextEventId: "friend_betrayal",
-        effects: {}
-      }
-    ]
-  },
-  "friend_betrayal": {
-    id: "friend_betrayal",
-    text: "【背刺】你的“亲友”把你在群里吐槽领导、以及写R18文的记录打包发给了你的公司邮箱，并向网信办举报了你。原来她一直嫉妒你的生活，潜伏在你身边只为这一天。",
-    choices: [
-      {
-        text: "崩溃！向她求情。",
-        nextEventId: "betrayal_outcome_bad",
-        effects: { stress: 50, eq: -20 }
-      },
-      {
-        text: "冷静处理，矢口否认，那是P图。",
-        nextEventId: "betrayal_outcome_fight",
-        effects: { stress: 20, legal: 10 }
-      }
-    ]
-  },
-  "betrayal_outcome_bad": {
-    id: "betrayal_outcome_bad",
-    text: "对方没有理会你的求情，反而把你的狼狈样发到了网上嘲笑。你在三次元的工作丢了，二次元的名声也臭了。",
-    choices: [
-      {
-        text: "这人心...太可怕了。",
-        nextEventId: "ending_cyber_bullying",
-        effects: {}
-      }
-    ]
-  },
-  "betrayal_outcome_fight": {
-    id: "betrayal_outcome_fight",
-    text: "你硬着头皮坚持那是有人恶意P图陷害。虽然公司半信半疑，但你的生活被搞得一团糟。你清空了列表，退出了所有群聊。",
-    choices: [
-      {
-        text: "从此做一个孤狼。",
-        nextEventId: "commercial_thought",
-        effects: { trust: -100, stress: 30 }
-      }
-    ]
+    ],
+    commentScenario: "praise_high"
   },
 
-  // --- DRAMA & RISKS HUB (Updated Router) ---
-  "random_crisis_hub": {
-    id: "random_crisis_hub",
-    text: "日子一天天过去，你在圈子里小有名气。但互联网总是充满了不确定性。这一天——",
-    choices: [
-      {
-        text: "查看今日运势...",
-        nextEventId: "algorithm_death", // Default route
-        effects: {}
-      }
-    ]
+  // --- ENDINGS (1:9 Ratio - Mostly Bad/Normal) ---
+  // BAD ENDINGS
+  "ending_jail": {
+    id: "ending_jail",
+    text: "【结局：铁窗泪】\n非法经营数额巨大。你不仅要退赔所有违法所得，还面临刑事处罚。你的青春将在缝纫机踩踏声中度过。",
+    choices: [], isEnding: true, endingTitle: "结局：铁窗泪",
+    poem: "贪念一起祸门开，金银散尽惹尘埃。\n高墙只锁悔心人，昔日繁华不再来。"
   },
-
-  "algorithm_death": {
-    id: "algorithm_death",
-    text: "【平台限流】你发现最近发布的作品阅读量只有个位数。明明之前都有几千热度。朋友告诉你：“你可能被Shadowban了，因为你的tag里带了敏感词。”",
-    choices: [
-      {
-        text: "养号，暂停更新，去现充。",
-        nextEventId: "future_path",
-        effects: { popularity: -10, stress: -10 }
-      },
-      {
-        text: "疯狂修改关键词，重新发布。",
-        nextEventId: "account_ban_risk",
-        effects: { stress: 20, creativity: -5 }
-      },
-      {
-        text: "不管了，去搞点实体的吧。",
-        nextEventId: "commercial_thought",
-        effects: {}
-      }
-    ]
-  },
-
-  "account_ban_risk": {
-    id: "account_ban_risk",
-    text: "你反复修改重发，触发了平台的滥用检测机制。你的账号被“因违反社区公约”永久封禁。",
-    choices: [
-      {
-        text: "申诉！我是冤枉的！",
-        nextEventId: "ending_banned",
-        effects: {}
-      },
-      {
-        text: "心累，退圈。",
-        nextEventId: "ending_quit",
-        effects: {}
-      }
-    ]
-  },
-
-  // --- DANGER CHECKS ---
-  "danger_check_1": {
-    id: "danger_check_1",
-    text: "你的文章因为尺度太大被屏毕了。平台给你发了警告。",
-    choices: [
-      {
-        text: "必须重发！修改敏感词再发！",
-        nextEventId: "account_ban_risk", 
-        effects: { legal: -20, stress: 10 }
-      },
-      {
-        text: "算了，以后写清水的吧。",
-        nextEventId: "first_feedback",
-        effects: { legal: 5, creativity: -5 }
-      }
-    ]
-  },
-  
-  "drama_check": {
-    id: "drama_check",
-    text: "你和读者的争吵升级了。对方也是个大V，挂了你的ID，粉丝开始冲你的评论区。",
-    choices: [
-      {
-        text: "退网保平安。",
-        nextEventId: "ending_quit",
-        effects: { stress: -20 }
-      },
-      {
-        text: "持续对线，我也不是好惹的！",
-        nextEventId: "police_tea_check",
-        effects: { stress: 20, eq: -20 }
-      }
-    ]
-  },
-  
-  "police_risk_check": {
-    id: "police_risk_check",
-    text: "风头似乎过去了...但你总觉得不安全。",
-    choices: [
-      {
-        text: "继续创作",
-        nextEventId: "mid_game_hub",
-        effects: {}
-      }
-    ]
-  },
-  
-  "police_tea_check": {
-    id: "police_tea_check",
-    text: "事情闹大了。有人人肉了你的信息，并且向有关部门举报你传播不良信息。",
-    choices: [
-      {
-        text: "等待命运...",
-        nextEventId: "ending_police_1", 
-        effects: {}
-      }
-    ]
-  },
-
-  // --- COMMERCIALIZATION (Updated with Wuliao & CP) ---
-  "commercial_thought": {
-    id: "commercial_thought",
-    text: "随着作品越来越多，粉丝都在喊：“大大出本吗？”、“想要透扇！”。你看着干瘪的钱包，又看了看热情的评论。",
-    choices: [
-      {
-        text: "出个人志！印个500本，回馈粉丝。",
-        nextEventId: "selling_books",
-        effects: { money: -100, stress: 10 },
-        description: "高风险，高收益"
-      },
-      {
-        text: "不做贩售，只做无料（免费派送）。",
-        nextEventId: "wuliao_choice",
-        effects: { money: -50, popularity: 10 },
-        description: "看似安全，实则..."
-      },
-      {
-        text: "不想搞实物，太麻烦。接稿/约稿吧。",
-        nextEventId: "freelance_path",
-        effects: { money: 50, creativity: -5 }
-      }
-    ]
-  },
-
-  // --- WULIAO (FREE MERCH) PATH ---
-  "wuliao_choice": {
-    id: "wuliao_choice",
-    text: "你决定自费制作一批精美的周边（明信片或无料本），免费送给同好。但是邮费是个问题。",
-    choices: [
-      {
-        text: "走闲鱼链接，设置1元+运费（防止跑单）。",
-        nextEventId: "wuliao_crisis",
-        effects: { popularity: 10 }
-      },
-      {
-        text: "漫展现场无料交换，不仅要运费还要才艺表演！",
-        nextEventId: "cp_inspection",
-        effects: { popularity: 15, stress: 5 }
-      }
-    ]
-  },
-
-  "wuliao_crisis": {
-    id: "wuliao_crisis",
-    text: "【无料风波】有人没抢到你的无料，心生怨恨。反手举报你的闲鱼链接涉及“非法出版”和“刷单”。因为你收了1元钱（包装费），被定性为盈利行为。",
-    choices: [
-      {
-        text: "立刻退款，关闭链接，滑跪道歉。",
-        nextEventId: "future_path",
-        effects: { stress: 20, money: -20 }
-      },
-      {
-        text: "跟闲鱼客服扯皮，坚称是二手闲置。",
-        nextEventId: "ending_police_1",
-        effects: { legal: -10 }
-      }
-    ]
-  },
-
-  // --- SELLING BOOKS & CP PATH ---
-  "selling_books": {
-    id: "selling_books",
-    text: "本子做好了，封面非常精美。你打算怎么卖？",
-    choices: [
-      {
-        text: "开淘宝店，低调发货。",
-        nextEventId: "sales_outcome",
-        effects: { money: 500, legal: -10 }
-      },
-      {
-        text: "参加CP（Comicup）漫展场贩。",
-        nextEventId: "cp_inspection",
-        effects: { money: 300, popularity: 10 }
-      },
-      {
-        text: "走闲鱼链接，设置1元+运费",
-        nextEventId: "wuliao_choice",
-        effects: { money: -50, popularity: 5 },
-        description: "只为回血，不想赚钱"
-      }
-    ]
-  },
-
-  "cp_inspection": {
-    id: "cp_inspection",
-    text: "【漫展危机】你带着大包小包到了展会现场。突然，几个戴红袖章的工作人员开始巡摊：“把你们摊位上所有的印刷品拿出来检查！有刊号吗？有准生证吗？这图尺度这么大？”",
-    choices: [
-      {
-        text: "赶紧把本子藏到桌布底下，只摆清水周边。",
-        nextEventId: "sales_outcome_safe",
-        effects: { money: 100, stress: 20 }
-      },
-      {
-        text: "理直气壮：“这是个人收藏交流！”",
-        nextEventId: "cp_confiscated",
-        effects: { legal: -10 }
-      }
-    ]
-  },
-
-  "cp_confiscated": {
-    id: "cp_confiscated",
-    text: "工作人员不听你的解释。你的本子被全数没收暂存，摊位被勒令整改。你看着空荡荡的摊位，欲哭无泪。",
-    choices: [
-      {
-        text: "损失惨重，回家...",
-        nextEventId: "ending_loss",
-        effects: { money: -500, stress: 30 }
-      }
-    ]
-  },
-  
-  "sales_outcome": {
-    id: "sales_outcome",
-    text: "销量还不错，你赚了一笔钱。但是，有人举报你“非法出版”。",
-    choices: [
-      {
-        text: "查看结果",
-        nextEventId: "jail_check",
-        effects: {}
-      }
-    ]
-  },
-
-  "sales_outcome_safe": {
-    id: "sales_outcome_safe",
-    text: "你躲过了一劫，虽然卖得不多，但至少安全回家了。同人展越来越难混了。",
-    choices: [
-      {
-        text: "以后还是别搞实物了。",
-        nextEventId: "future_path",
-        effects: {}
-      }
-    ]
-  },
-  
-  "jail_check": {
-    id: "jail_check",
-    text: "警方注意到了你的交易流水。这在法律上是一个非常危险的边缘。",
-    choices: [
-      {
-        text: "如果是少量印刷，且运气好...",
-        condition: (s) => s.legal > 40 && s.money < 1000,
-        nextEventId: "ending_normal",
-        effects: {}
-      },
-      {
-        text: "如果金额巨大...",
-        condition: (s) => s.money >= 1000 || s.legal <= 40,
-        nextEventId: "ending_jail_sales",
-        effects: {}
-      }
-    ]
-  },
-
-  "freelance_path": {
-    id: "freelance_path",
-    text: "你开始接稿。但甲方的要求极其奇葩，而且经常拖欠尾款。",
-    choices: [
-      {
-        text: "为了钱，忍了。",
-        nextEventId: "ending_slave",
-        effects: { money: 200, creativity: -50, stress: 50 }
-      },
-      {
-        text: "不干了，还是写同人开心。",
-        nextEventId: "future_path",
-        effects: { money: -50, stress: -20 }
-      }
-    ]
-  },
-
-  // --- TRANSITION TO END GAME ---
-  "future_path": {
-    id: "future_path",
-    text: "经历了一系列风波，你站在人生的岔路口。无论是为爱发电的疲惫，还是三次元的压力，都让你不得不重新思考。",
-    choices: [
-      // NEW HIDDEN ENDING 1: Cultural Ambassador
-      {
-        text: "【隐藏】接受官方邀请，成为文化大使。",
-        condition: (s) => s.creativity >= 80 && s.legal >= 80 && s.popularity >= 50,
-        nextEventId: "ending_cultural_ambassador",
-        effects: { money: 1000 },
-        description: "条件：创作>80 法律>80 知名>50"
-      },
-      // NEW HIDDEN ENDING 2: Fandom Godmother
-      {
-        text: "【隐藏】整合资源，建立创作者避风港。",
-        condition: (s) => s.trust >= 80 && s.money >= 800 && s.eq >= 50,
-        nextEventId: "ending_godmother",
-        effects: {},
-        description: "条件：信任>80 金钱>800 情商>50"
-      },
-      {
-        text: "我不甘心！我要转型职业作家！(高难度)",
-        nextEventId: "original_start",
-        effects: { stress: 10 }
-      },
-      {
-        text: "找个班上，同人只当爱好。",
-        nextEventId: "ending_normal",
-        effects: {}
-      },
-      {
-        text: "彻底割席，这个圈子不值得。",
-        nextEventId: "ending_quit",
-        effects: {}
-      }
-    ]
-  },
-
-  // --- PROFESSIONAL WRITER PATH (EXPANDED) ---
-  "original_start": {
-    id: "original_start",
-    text: "你决定脱离同人的舒适区，挑战原创。你打开了某绿江文学城/某点中文网的后台。",
-    choices: [
-      {
-        text: "写此时最火的“追妻火葬场/系统流”题材。",
-        nextEventId: "original_publishing",
-        effects: { popularity: 5, creativity: -10 },
-        description: "迎合市场，容易签约但容易扑街"
-      },
-      {
-        text: "写自己心中的冷门神作。",
-        nextEventId: "original_cold_start",
-        effects: { creativity: 20, popularity: -10 },
-        description: "用爱发电，地狱难度"
-      }
-    ]
-  },
-
-  "original_publishing": {
-    id: "original_publishing",
-    text: "你写了三万字正文，点击量寥寥无几，也没有编辑来找你签约。",
-    choices: [
-      {
-        text: "坚持日更，杀签（不断申请签约）！",
-        nextEventId: "original_contract",
-        effects: { stress: 20 }
-      },
-      {
-        text: "砍大纲，切书，重开！",
-        nextEventId: "original_publishing",
-        effects: { creativity: -10, stress: 10 }
-      },
-      {
-        text: "太难了，我不写了。",
-        nextEventId: "ending_fail_original",
-        effects: {}
-      }
-    ]
-  },
-
-  "original_cold_start": {
-    id: "original_cold_start",
-    text: "你写得很开心，但数据是一潭死水。单机写了二十万字，只有三个读者，其中一个还是盗文网抓取的机器人。",
-    choices: [
-      {
-        text: "耐得住寂寞，这本就是写给我自己的。",
-        nextEventId: "ending_mid_writer",
-        effects: { creativity: 30 }
-      },
-      {
-        text: "去论坛发帖自荐，去微博蹭热度。",
-        nextEventId: "plagiarism_event",
-        effects: { popularity: 5, stress: 10 }
-      }
-    ]
-  },
-
-  "original_contract": {
-    id: "original_contract",
-    text: "终于，站短亮了！编辑发来了签约邀请。但是你一看合同，全是霸王条款：全版权买断，甚至如果你去世了账号归平台。",
-    choices: [
-      {
-        text: "闭眼签了！我要成为作家！",
-        nextEventId: "original_struggle",
-        effects: { legal: -20, money: 50 }
-      },
-      {
-        text: "这合同是卖身契啊...据理力争。",
-        nextEventId: "original_rejected",
-        effects: { legal: 10 }
-      }
-    ]
-  },
-
-  "original_rejected": {
-    id: "original_rejected",
-    text: "编辑很冷漠：“不签就别写。” 你的作家梦碎了。",
-    choices: [
-      {
-        text: "换个小平台试试。",
-        nextEventId: "ending_mid_writer",
-        effects: {}
-      },
-      {
-        text: "回去写同人吧，至少有反馈。",
-        nextEventId: "first_feedback",
-        effects: {}
-      }
-    ]
-  },
-
-  "original_struggle": {
-    id: "original_struggle",
-    text: "签约后，你并没有飞升。没有推荐位，收益每天几块钱。为了全勤奖（600块），你每天必须水文3000字，写得想吐。",
-    choices: [
-      {
-        text: "熬！熬到完结就是胜利！",
-        condition: (s) => s.creativity > 70 && s.stress < 80,
-        nextEventId: "ending_success", // High stats required
-        effects: {}
-      },
-      {
-        text: "身体扛不住了，断更...",
-        condition: (s) => s.stress >= 80,
-        nextEventId: "ending_fail_original",
-        effects: {}
-      },
-      {
-        text: "随便写写，烂尾跑路。",
-        condition: (s) => s.creativity <= 70,
-        nextEventId: "ending_mid_writer",
-        effects: {}
-      }
-    ]
-  },
-
-  "plagiarism_event": {
-    id: "plagiarism_event",
-    text: "你的冷门文突然火了！但你发现，是一个大V“融梗”了你的核心创意，还倒打一耙说你蹭热度。",
-    choices: [
-      {
-        text: "做调色盘（对比图）挂他！",
-        nextEventId: "drama_check",
-        effects: { stress: 20 }
-      },
-      {
-        text: "小透明斗不过大V，忍气吞声。",
-        nextEventId: "ending_cyber_bullying",
-        effects: {}
-      }
-    ]
-  },
-
-  // --- ENDINGS ---
-  
-  // New Good Ending 1
-  "ending_cultural_ambassador": {
-    id: "ending_cultural_ambassador",
-    text: "【结局：文化大使】\n你因对原作极其深刻的理解和高超的二创水平，被官方版权方注意到。他们邀请你参与官方衍生作品的编剧。你用实力证明，同人不仅仅是依附，更是共生。你在主流媒体上侃侃而谈，让更多人理解了这个小众圈子的美好。",
-    choices: [],
-    isEnding: true,
-    endingTitle: "结局：文化大使",
-    poem: "枯木逢春发旧枝，同人一笔动天时。\n原来殊途终同归，满堂花醉客来迟。"
-  },
-
-  // New Good Ending 2
-  "ending_godmother": {
-    id: "ending_godmother",
-    text: "【结局：圈层教母】\n你并没有成为顶尖的大作家，但你用极高的情商和积累的人脉，建立了一个名为“方舟”的创作社区。你保护了无数小作者免受网暴，你制定的“圈层公约”被视为铁律。你是这个混沌圈子里最坚实的后盾，被无数人尊称为“教母”。",
-    choices: [],
-    isEnding: true,
-    endingTitle: "结局：圈层教母",
-    poem: "八方风雨护孤舟，万丈红尘一望收。\n不为浮名遮望眼，且留清气在心头。"
-  },
-
-  "ending_police_1": {
-    id: "ending_police_1",
-    text: "【结局：请喝茶】\n因为传播违规内容或被恶意举报，你被辖区派出所传唤。虽然只是批评教育，但你在三次元社死了，父母也没收了你的电脑。",
-    choices: [],
-    isEnding: true,
-    endingTitle: "结局：请喝茶",
-    poem: "笔底波澜触暗礁，清茶一盏意难销。\n此时方悔从前事，满纸荒唐未肯抛。"
-  },
-  "ending_jail_sales": {
-    id: "ending_jail_sales",
-    text: "【结局：非法经营】\n你的本子/无料涉及金额超过了立案标准。因为缺乏出版刊号，你因涉嫌“非法经营罪”被刑事拘留。铁窗泪。",
-    choices: [],
-    isEnding: true,
-    endingTitle: "结局：铁窗泪",
-    poem: "利欲熏心这般愁，铁窗风雨几时休。\n当初只道金银好，换得身名一旦休。"
-  },
-  "ending_loss": {
-    id: "ending_loss",
-    text: "【结局：血本无归】\n漫展被查，本子被扣，印刷费打了水漂。你不仅没赚到钱，还搭进去几个月的生活费。看着堆满房间的废纸，你心如死灰。",
-    choices: [],
-    isEnding: true,
-    endingTitle: "结局：血本无归",
-    poem: "满腔热血付东流，散尽千金换别愁。\n纸上繁华终是梦，空余残墨染春秋。"
-  },
-  "ending_banned": {
-    id: "ending_banned",
-    text: "【结局：炸号】\n你的账号彻底消失在互联网的洪流中。多年积累的粉丝、文章、评论，瞬间清零。你就像一个从未存在过的幽灵。",
-    choices: [],
-    isEnding: true,
-    endingTitle: "结局：赛博失语",
-    poem: "十年心血一朝空，名为违规去无踪。\n赛博坟场无墓碑，只有404在风中。"
+  "ending_tea": {
+    id: "ending_tea",
+    text: "【结局：请喝茶】\n虽然没有判刑，但留下了案底。你的父母被叫到了派出所，看着你写的那些文字，他们眼神里的失望让你窒息。",
+    choices: [], isEnding: true, endingTitle: "结局：请喝茶",
+    poem: "一盏清茶味更苦，双亲白发泪模糊。\n文心虽在身已误，从此萧郎是路人。"
   },
   "ending_cyber_bullying": {
     id: "ending_cyber_bullying",
-    text: "【结局：退网抑郁】\n网络暴力的浪潮将你淹没。私信里全是恶毒的诅咒，你不敢开手机，不敢看屏幕。你得了严重的网络创伤，决定永远离开这个是非之地。",
-    choices: [],
-    isEnding: true,
-    endingTitle: "结局：惊弓之鸟",
-    poem: "人言可畏胜刀枪，字字诛心透骨凉。\n掩卷息屏归去后，夜深犹自梦苍茫。"
+    text: "【结局：惊弓之鸟】\n网络暴力摧毁了你的精神防线。你患上了严重的抑郁症，只要听到手机震动就会发抖。你彻底消失在了网络世界。",
+    choices: [], isEnding: true, endingTitle: "结局：惊弓之鸟",
+    poem: "人言如刀不见血，字字诛心透骨寒。\n掩耳盗铃终是错，梦回犹在鬼门关。"
   },
-  "ending_quit": {
-    id: "ending_quit",
-    text: "【结局：退圈保平安】\n圈子里的乌烟瘴气让你窒息。你注销了所有账号，从此只做一个现充。虽然清净了，但心里总觉得空落落的。",
-    choices: [],
-    isEnding: true,
-    endingTitle: "结局：退圈",
-    poem: "江湖风浪总难平，归去来兮一身轻。\n从此不闻圈内事，闲看花落听鸟鸣。"
+  "ending_bad_reputation": {
+    id: "ending_bad_reputation",
+    text: "【结局：臭名昭著】\n坑品太差，或是卷入太多是非，你在圈内名声扫地。无论你换多少个马甲，总会被人认出来追着骂。",
+    choices: [], isEnding: true, endingTitle: "结局：过街老鼠",
+    poem: "虽然才气比天高，德行有亏众口嘲。\n马甲千重藏不住，满屏唾沫似惊涛。"
   },
-  "ending_slave": {
-    id: "ending_slave",
-    text: "【结局：社畜】\n因为同人赚不到钱，或者因为接稿耗尽了灵气，你最终入职了一家互联网公司，每天996。你再也没有时间提笔写字。",
-    choices: [],
-    isEnding: true,
-    endingTitle: "结局：普通社畜",
-    poem: "灵台方寸已蒙尘，案牍劳形老此身。\n梦想当年如逝水，同人一梦属他人。"
+  "ending_giveup": {
+    id: "ending_giveup",
+    text: "【结局：半途而废】\n这世界太乱，创作太难。你默默注销了账号。多年后，没人记得你曾经来过。",
+    choices: [], isEnding: true, endingTitle: "结局：无名之辈",
+    poem: "兴来提笔意飞扬，意尽人散茶更凉。\n大梦一场终须醒，也就是个普通郎。"
   },
-  "ending_normal": {
-    id: "ending_normal",
-    text: "【结局：现充的快乐】\n你找了一份普通工作，偶尔在周末写写清水文。虽然不火，但有一群固定的读者。这或许是最好的平衡。",
-    choices: [],
-    isEnding: true,
-    endingTitle: "结局：平淡是真",
-    poem: "平平淡淡才是真，偶向闲窗写旧因。\n不求闻达于诸侯，自有一方自在身。"
+  "ending_slave_early": {
+    id: "ending_slave_early",
+    text: "【结局：被生活磨平】\n你发现写同人救不了你的贫穷。你找了个班上，每天996，再也没有力气打开文档。",
+    choices: [], isEnding: true, endingTitle: "结局：社畜",
+    poem: "月亮与币难兼得，低头只为碎银忙。\n心中那团少年火，早已熄在风雪场。"
   },
-  "ending_success": {
-    id: "ending_success",
-    text: "【结局：紫微星降临】\n你熬过了漫长的冷板凳期，一本封神！影视版权卖出天价，你的名字挂在畅销榜首。你是无数作者仰望的“紫微星”。",
-    choices: [],
-    isEnding: true,
-    endingTitle: "结局：大神作家",
-    poem: "十年辛苦磨一剑，今日锋芒天下知。\n名利双收随手得，青云直上九重时。"
+
+  // NORMAL ENDINGS
+  "ending_normal_consumer": {
+    id: "ending_normal_consumer",
+    text: "【结局：快乐读者】\n你从未动笔，所以从未受伤害。你在坑底躺得很平，偶尔给大大递递茶。这或许是最幸福的结局。",
+    choices: [], isEnding: true, endingTitle: "结局：吃粮人",
+    poem: "不写文章不惹愁，且将闲眼看风流。\n神仙打架由他去，我自逍遥一叶舟。"
   },
-  "ending_mid_writer": {
-    id: "ending_mid_writer",
-    text: "【结局：底层写手】\n你没有成神，也没有饿死。你每个月拿着几千块的全勤稿费，在温饱线上挣扎。虽然没有大红大紫，但这里有属于你的故事世界。",
-    choices: [],
-    isEnding: true,
-    endingTitle: "结局：笔耕不辍",
-    poem: "虽然未得步青云，且把文章慰我心。\n冷暖自知书卷里，也无风雨也无晴。"
+  "ending_normal_happy": {
+    id: "ending_normal_happy",
+    text: "【结局：圈地自萌】\n你有三两个亲友，写写自己喜欢的故事。不追求热度，不涉及金钱。你在这个小小的角落里找到了安宁。",
+    choices: [], isEnding: true, endingTitle: "结局：桃花源",
+    poem: "不论窗外风雨恶，且向花间写太平。\n三五知己一杯酒，此心安处是吾名。"
   },
-  "ending_fail_original": {
-    id: "ending_fail_original",
-    text: "【结局：扑街】\n脱离了同人滤镜，你的原创作品无人问津。数据惨淡，你不得不回去找工作。你终于承认，自己只是一个普通的创作者。",
-    choices: [],
-    isEnding: true,
-    endingTitle: "结局：梦碎",
-    poem: "才高命薄叹奈何，转型路断泪滂沱。\n回首依然无去处，红尘碌碌且高歌。"
+
+  // GOOD ENDINGS (Rare)
+  "ending_legend": {
+    id: "ending_legend",
+    text: "【结局：同人封神】\n你的名字成为了这个圈子的传说。你的作品被奉为“镇圈之宝”。你不仅收获了名声，更重要的是，你保护好了那份初心。",
+    choices: [], isEnding: true, endingTitle: "结局：无冕之王",
+    poem: "笔落惊风雨，诗成泣鬼神。\n十年磨一剑，今日把示君。\n不负心中爱，留得身后名。"
+  },
+  "ending_influencer": {
+    id: "ending_influencer",
+    text: "【结局：流量变现】\n你不再执着于纯粹的创作，而是成为了深谙流量密码的网红。接广、带货、引流，你赚得盆满钵满。虽然有人骂你变了，但你不在乎。",
+    choices: [], isEnding: true, endingTitle: "结局：名利场",
+    poem: "妆楼颙望只有金，笑看痴人说真心。\n长袖善舞多财路，谁管当年梦已沉。"
   }
 };

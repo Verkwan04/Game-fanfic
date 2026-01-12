@@ -5,7 +5,7 @@ export interface Attributes {
   popularity: number; // 知名度
   stress: number;     // 压力
   money: number;      // 金钱
-  trust: number;      // 信任/社交 (New: Tracks depth of relationships in fandom)
+  trust: number;      // 信任/社交
 }
 
 export interface Choice {
@@ -16,31 +16,20 @@ export interface Choice {
   description?: string; // Hint about what this does
 }
 
-export interface MiniGameConfig {
-  type: 'dice'; // Future proofing for other types
-  threshold: number; // Value to beat
-  successEventId: string;
-  failEventId: string;
-  successEffects?: Partial<Attributes>;
-  failEffects?: Partial<Attributes>;
-}
-
 export interface GameEvent {
   id: string;
   text: string;
   choices: Choice[];
-  imagePrompt?: string; // For potential AI image gen
   isEnding?: boolean;
   endingTitle?: string;
-  poem?: string; // Pre-written poem for instant display
-  miniGame?: MiniGameConfig; // Optional mini-game trigger
+  poem?: string; // Pre-written poem
+  commentScenario?: string; // Key for the comment library
 }
 
 export interface FateCard {
   id: string;
   title: string;
   poem: string;
-  imageUrl: string;
   timestamp: number;
 }
 
@@ -49,7 +38,6 @@ export interface GameState {
   attributes: Attributes;
   history: string[]; // List of event IDs visited
   isGameOver: boolean;
-  generatedComments: string | null; // For AI generated flavor text
-  isLoadingAI: boolean;
+  generatedComments: string[] | null; // Changed to string array for structured comments
   activeFateCard: FateCard | null; // The card currently being shown at ending
 }

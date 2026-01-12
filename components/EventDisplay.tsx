@@ -2,14 +2,13 @@ import React, { useEffect, useState, useRef } from 'react';
 import { GameEvent, Choice, Attributes, FateCard as FateCardType } from '../types';
 import SocialFeed from './SocialFeed';
 import FateCard from './FateCard';
-import DiceGame from './DiceGame';
 import html2canvas from 'html2canvas';
 
 interface Props {
   event: GameEvent;
   onChoice: (choice: Choice) => void;
   attributes: Attributes;
-  aiComments: string | null;
+  aiComments: string[] | null;
   loadingAI: boolean;
   activeFateCard: FateCardType | null;
   onRestart: () => void;
@@ -41,7 +40,7 @@ const EventDisplay: React.FC<Props> = ({
     setIsSaving(true);
     try {
       const canvas = await html2canvas(cardRef.current, {
-        scale: 2, // Higher resolution
+        scale: 2, 
         backgroundColor: null, 
         useCORS: true, 
       });
@@ -66,24 +65,6 @@ const EventDisplay: React.FC<Props> = ({
     }).catch(() => {
       console.error("Copy failed");
     });
-  };
-
-  // Handle Mini Game Result
-  const handleDiceResult = (result: number) => {
-    if (!event.miniGame) return;
-    
-    const isSuccess = result >= event.miniGame.threshold;
-    const nextId = isSuccess ? event.miniGame.successEventId : event.miniGame.failEventId;
-    const effects = isSuccess ? event.miniGame.successEffects : event.miniGame.failEffects;
-
-    // Small delay to show result before moving on
-    setTimeout(() => {
-      onChoice({
-        text: "Dice Result",
-        nextEventId: nextId,
-        effects: effects
-      });
-    }, 500);
   };
 
   return (
@@ -111,11 +92,6 @@ const EventDisplay: React.FC<Props> = ({
           </div>
         </div>
 
-        {/* Mini Game Interaction (If Active) */}
-        {!event.isEnding && event.miniGame && (
-           <DiceGame onRollComplete={handleDiceResult} />
-        )}
-
         {/* Fate Card Display at Ending */}
         {event.isEnding && (
            <div className="my-8 flex flex-col items-center gap-6">
@@ -125,9 +101,9 @@ const EventDisplay: React.FC<Props> = ({
                       <FateCard card={activeFateCard} />
                   </div>
                 ) : (
-                  <div className="w-full max-w-sm h-[500px] border-2 border-dashed border-stone-300 rounded-lg flex flex-col items-center justify-center text-stone-400 bg-stone-50/50 animate-pulse font-serif">
-                      <span className="material-icons-round text-4xl mb-2 opacity-50">brush</span>
-                      <span>正在挥毫泼墨...</span>
+                  <div className="w-full max-w-sm h-[400px] border-2 border-dashed border-stone-300 rounded-lg flex flex-col items-center justify-center text-stone-400 bg-stone-50/50 animate-pulse font-serif">
+                      <span className="material-icons-round text-4xl mb-2 opacity-50">auto_stories</span>
+                      <span>命运书写中...</span>
                   </div>
                 )}
               </div>
@@ -164,8 +140,8 @@ const EventDisplay: React.FC<Props> = ({
            </div>
         )}
 
-        {/* Automatic Social Feed (Hide on Ending to focus on the Card) */}
-        {!event.isEnding && !event.miniGame && (
+        {/* Automatic Social Feed */}
+        {!event.isEnding && (aiComments || loadingAI) && (
           <SocialFeed comments={aiComments} loading={loadingAI} />
         )}
 
@@ -173,7 +149,7 @@ const EventDisplay: React.FC<Props> = ({
 
       {/* Choices Area - Fixed at bottom */}
       <div className="space-y-4 pt-6 border-t border-stone-200">
-        {!event.isEnding && !event.miniGame && event.choices.map((choice, index) => {
+        {!event.isEnding && event.choices.map((choice, index) => {
           if (choice.condition && !choice.condition(attributes)) return null;
 
           return (

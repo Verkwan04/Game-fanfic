@@ -1,8 +1,8 @@
 import React from 'react';
 
 interface Props {
-  comments: string | null;
-  loading: boolean;
+  comments: string[] | null;
+  loading: boolean; // Kept for interface compatibility but ignored
 }
 
 // Helper to generate a consistent-looking random user based on index
@@ -10,7 +10,8 @@ const getRandomUser = (index: number) => {
   const names = [
     "Momo", "纯爱战士", "User_8871", "吃瓜路人", "XXX激推", 
     "熬夜冠军", "快乐小狗", "Bot", "AAA建材王总", "磕学家",
-    "不想上班", "管理员", "匿名用户", "电子榨菜", "绝美爱情"
+    "不想上班", "管理员", "匿名用户", "电子榨菜", "绝美爱情",
+    "在坑底躺平", "催更机器", "文荒流泪"
   ];
   // Desaturated colors
   const avatars = [
@@ -26,63 +27,50 @@ const getRandomUser = (index: number) => {
   };
 };
 
-const SocialFeed: React.FC<Props> = ({ comments, loading }) => {
-  if (loading) {
-    return (
-      <div className="mt-8 bg-stone-50/50 rounded-lg p-4 border border-stone-200 animate-pulse">
-        <div className="flex gap-3 mb-4">
-          <div className="w-8 h-8 rounded-full bg-stone-200"></div>
-          <div className="flex-1 space-y-2">
-            <div className="h-3 bg-stone-200 rounded w-1/4"></div>
-            <div className="h-3 bg-stone-200 rounded w-3/4"></div>
-          </div>
-        </div>
-        <div className="text-center text-stone-400 text-xs mt-2 font-serif">坊间传闻收集中...</div>
-      </div>
-    );
-  }
-
-  if (!comments) return null;
-
-  const commentList = comments.split('\n').filter(c => c.trim().length > 0);
+const SocialFeed: React.FC<Props> = ({ comments }) => {
+  if (!comments || comments.length === 0) return null;
 
   return (
     <div className="mt-8 border-t border-dashed border-stone-300 pt-6">
-      <div className="flex items-center justify-between mb-4 px-2">
+      <div className="flex items-center justify-between mb-6 px-2">
         <h3 className="text-sm font-bold text-stone-600 uppercase tracking-widest flex items-center gap-2 font-serif">
           <span className="material-icons-round text-base">forum</span>
           坊间议论
         </h3>
-        <span className="text-xs text-stone-500 border border-stone-300 px-2 py-0.5 rounded-sm font-serif">热议</span>
+        <span className="text-xs text-stone-500 border border-stone-300 px-2 py-0.5 rounded-sm font-serif bg-stone-50">实时</span>
       </div>
 
-      <div className="space-y-4">
-        {commentList.map((text, idx) => {
+      <div className="space-y-6">
+        {comments.map((text, idx) => {
           const user = getRandomUser(idx);
           return (
-            <div key={idx} className="bg-[#fcfbf9] p-4 rounded-sm border border-stone-200 shadow-sm transition-all hover:border-stone-400 comment-anim" style={{ animationDelay: `${idx * 0.1}s` }}>
-              <div className="flex gap-3">
+            <div key={idx} className="bg-[#fcfbf9] p-5 rounded-sm border border-stone-200 shadow-sm transition-all hover:border-stone-400 comment-anim" style={{ animationDelay: `${idx * 0.15}s` }}>
+              <div className="flex gap-4">
                 {/* Avatar */}
-                <div className={`w-8 h-8 rounded-full flex-shrink-0 ${user.avatarColor} flex items-center justify-center text-white font-bold text-xs`}>
+                <div className={`w-9 h-9 rounded-full flex-shrink-0 ${user.avatarColor} flex items-center justify-center text-white font-bold text-xs shadow-inner`}>
                   {user.name.charAt(0)}
                 </div>
                 
                 {/* Content */}
                 <div className="flex-1 min-w-0">
-                  <div className="flex justify-between items-start">
+                  <div className="flex justify-between items-start mb-2">
                     <span className="text-sm font-bold text-stone-700 truncate font-serif">{user.name}</span>
                     <span className="text-xs text-stone-400 font-serif">{user.time}</span>
                   </div>
                   
-                  <p className="text-stone-800 text-sm mt-1 leading-relaxed break-words font-serif">
+                  <p className="text-stone-800 text-sm leading-7 text-justify break-words font-serif whitespace-pre-wrap">
                     {text}
                   </p>
                   
                   {/* Fake Actions */}
-                  <div className="flex gap-4 mt-2 text-stone-400 text-xs font-medium">
+                  <div className="flex gap-4 mt-3 text-stone-400 text-xs font-medium border-t border-stone-100 pt-2">
                     <button className="flex items-center gap-1 hover:text-[#8b1e1e] transition-colors">
                       <span className="material-icons-round text-[14px]">thumb_up_off_alt</span>
                       {user.likes}
+                    </button>
+                    <button className="flex items-center gap-1 hover:text-stone-600 transition-colors">
+                        <span className="material-icons-round text-[14px]">chat_bubble_outline</span>
+                        回复
                     </button>
                     <button className="flex items-center gap-1 hover:text-stone-600 transition-colors ml-auto">
                       <span className="material-icons-round text-[14px]">more_horiz</span>
