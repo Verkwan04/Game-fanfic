@@ -7,10 +7,10 @@ interface Props {
 // Helper to generate a consistent-looking random user based on index
 const getRandomUser = (index: number) => {
   const names = [
-    "Momo", "纯爱战士", "User_8871", "吃瓜路人", "XXX激推", 
-    "熬夜冠军", "快乐小狗", "Bot", "AAA建材王总", "磕学家",
-    "不想上班", "管理员", "匿名用户", "电子榨菜", "绝美爱情",
-    "暴躁老哥", "互联网嘴替", "只看文不说话", "催更狂魔"
+    "Momo", "纯爱战士", "吃瓜路人", "XXX激推", "熬夜冠军", "快乐小狗",
+    "磕学家", "不想上班", "电子榨菜", "绝美爱情", "互联网嘴替", "催更狂魔",
+    "冷圈难民", "今天也在磕", "饿饿饭饭", "路过存图", "理性消费人",
+    "站姐不私生", "签售抢到了", "为爱发电", "匿名用户", "只看文不说话"
   ];
   const avatars = [
     "bg-stone-400", "bg-stone-500", "bg-stone-600", "bg-zinc-400", 
@@ -26,8 +26,18 @@ const getRandomUser = (index: number) => {
   };
 };
 
+const shuffle = <T,>(arr: T[]): T[] => {
+  const out = [...arr];
+  for (let i = out.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [out[i], out[j]] = [out[j], out[i]];
+  }
+  return out;
+};
+
 const SocialFeed: React.FC<Props> = ({ comments }) => {
   if (!comments || comments.length === 0) return null;
+  const displayComments = comments.length > 6 ? shuffle(comments).slice(0, 6) : shuffle(comments);
 
   return (
     <div className="mt-8 border-t border-dashed border-stone-300 pt-6">
@@ -40,7 +50,7 @@ const SocialFeed: React.FC<Props> = ({ comments }) => {
       </div>
 
       <div className="space-y-4">
-        {comments.map((text, idx) => {
+        {displayComments.map((text, idx) => {
           const user = getRandomUser(idx);
           return (
             <div key={idx} className="bg-[#fcfbf9] p-4 rounded-sm border border-stone-200 shadow-sm transition-all hover:border-stone-400 comment-anim" style={{ animationDelay: `${idx * 0.1}s` }}>

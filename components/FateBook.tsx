@@ -1,5 +1,6 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { FateCard as FateCardType } from '../types';
+import { TOTAL_ENDINGS, ALL_ENDING_IDS } from '../constants';
 
 interface Props {
   achievements: Record<string, FateCardType>;
@@ -7,7 +8,13 @@ interface Props {
 }
 
 const FateBook: React.FC<Props> = ({ achievements, onClose }) => {
-  const cards = (Object.values(achievements) as FateCardType[]).sort((a, b) => b.timestamp - a.timestamp);
+  const [showBadge, setShowBadge] = useState(false);
+  const collectedCount = ALL_ENDING_IDS.filter((id) => achievements[id]).length;
+  const allCollected = collectedCount >= TOTAL_ENDINGS;
+
+  useEffect(() => {
+    if (allCollected) setShowBadge(true);
+  }, [allCollected]);
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-stone-900/90 backdrop-blur-sm p-4 animate-float-in">
@@ -21,7 +28,7 @@ const FateBook: React.FC<Props> = ({ achievements, onClose }) => {
              </div>
              <div>
                 <h2 className="text-2xl font-serif tracking-[0.3em] font-bold">轮回命簿</h2>
-                <p className="text-xs text-stone-400 tracking-widest uppercase mt-1">Records of Reincarnation</p>
+                <p className="text-xs text-stone-400 tracking-widest uppercase mt-1">共{TOTAL_ENDINGS}张信笺，集齐解锁终极徽章</p>
              </div>
           </div>
           <button 
@@ -32,52 +39,85 @@ const FateBook: React.FC<Props> = ({ achievements, onClose }) => {
           </button>
         </div>
 
-        {/* Content - Grid of "Wooden Tags" style */}
+        {/* Content - 20 张信笺（空信笺 + 已解锁） */}
         <div className="flex-1 overflow-y-auto p-8 bg-[#e8e4d9] relative custom-scrollbar">
           <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/wood-pattern.png')] opacity-10 pointer-events-none"></div>
           
-          {cards.length === 0 ? (
-             <div className="h-full flex flex-col items-center justify-center text-stone-500 space-y-6 relative z-10 opacity-60">
-                <span className="material-icons-round text-7xl">auto_stories</span>
-                <p className="font-serif text-2xl tracking-[0.2em]">命书空白，请先去体验人生...</p>
-             </div>
-          ) : (
-            <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-6 relative z-10 pb-10">
-              {cards.map((card) => (
+          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-6 relative z-10 pb-10">
+            {ALL_ENDING_IDS.map((endingId) => {
+              const card = achievements[endingId];
+              const isEmpty = !card;
+              return (
                 <div 
-                  key={card.id} 
-                  className="group relative h-72 bg-[#fdfbf7] shadow-lg hover:shadow-2xl rounded-sm border-l-4 border-[#8b1e1e] overflow-hidden hover:-translate-y-2 transition-all duration-500 cursor-default flex flex-col"
+                  key={endingId} 
+                  className={`group relative h-72 rounded-sm overflow-hidden flex flex-col transition-all duration-500 cursor-default hover:-translate-y-2 ${
+                    isEmpty 
+                      ? 'bg-stone-200/80 border border-dashed border-stone-400 shadow' 
+                      : 'bg-[#fdfbf7] shadow-lg hover:shadow-2xl border-l-4 border-[#8b1e1e]'
+                  }`}
                 >
-                    {/* Date */}
-                    <div className="absolute top-2 right-2 text-[10px] text-stone-400 font-serif writing-vertical-rl">
-                       {new Date(card.timestamp).toLocaleDateString()}
-                    </div>
-
-                    {/* Content */}
-                    <div className="flex-1 flex flex-col items-center justify-center p-4">
-                        <h3 className="text-xl font-bold text-[#8b1e1e] calligraphy mb-4 writing-vertical-rl tracking-widest text-center h-2/3">
+                  {isEmpty ? (
+                    <>
+                      <div className="flex-1 flex flex-col items-center justify-center p-4">
+                        <span className="material-icons-round text-5xl text-stone-400 mb-2">description</span>
+                        <h3 className="text-lg font-serif text-stone-500 tracking-widest">空信笺</h3>
+                        <p className="text-xs text-stone-400 mt-1">待书写</p>
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      <div className="absolute top-2 right-2 text-[10px] text-stone-400 font-serif">
+                         {new Date(card.timestamp).toLocaleDateString()}
+                      </div>
+                      <div className="flex-1 flex flex-col items-center justify-center p-4">
+                        <h3 className="text-xl font-bold text-[#8b1e1e] calligraphy mb-4 writing-vertical-rl tracking-widest text-center">
                            {card.title}
                         </h3>
-                    </div>
-
-                    {/* Hover Poem Overlay */}
-                    <div className="absolute inset-0 bg-[#1a1a1a] opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center p-4">
+                      </div>
+                      <div className="absolute inset-0 bg-[#1a1a1a] opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center p-4">
                         <p className="text-[#f5f2e9] text-sm font-serif leading-loose text-center tracking-widest whitespace-pre-wrap">
                            {card.poem}
                         </p>
-                    </div>
+                      </div>
+                    </>
+                  )}
                 </div>
-              ))}
-            </div>
-          )}
+              );
+            })}
+          </div>
         </div>
 
         {/* Footer */}
         <div className="p-4 bg-[#fcfbf9] text-stone-500 text-xs text-center font-serif border-t border-stone-300 flex justify-between px-8">
-          <span>一花一世界</span>
-          <span>已解锁结局：{cards.length} / 8</span>
+          <span>一花一世界，一叶一结局</span>
+          <span>已解锁：{collectedCount} / {TOTAL_ENDINGS}</span>
         </div>
       </div>
+
+      {/* 同人女使命达成 - 终极徽章弹层 */}
+      {showBadge && (
+        <div 
+          className="absolute inset-0 z-[60] flex items-center justify-center bg-black/70 backdrop-blur-md animate-float-in"
+          onClick={() => setShowBadge(false)}
+        >
+          <div 
+            className="bg-[#f5f2e9] max-w-md w-full mx-4 rounded-2xl shadow-2xl border-4 border-[#8b1e1e] p-8 text-center animate-float-in"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="w-24 h-24 mx-auto mb-6 rounded-full bg-[#8b1e1e] flex items-center justify-center">
+              <span className="material-icons-round text-5xl text-[#f5f2e9]">verified</span>
+            </div>
+            <h3 className="text-2xl font-bold text-[#8b1e1e] font-serif tracking-[0.3em] mb-2">同人女使命达成</h3>
+            <p className="text-stone-600 font-serif text-sm mb-6">你已集齐命簿二十张信笺，阅尽轮回百态。</p>
+            <button
+              onClick={() => setShowBadge(false)}
+              className="px-8 py-3 bg-[#8b1e1e] text-[#f5f2e9] rounded-lg font-serif font-bold tracking-widest hover:bg-[#a62424] transition-colors"
+            >
+              收下徽章
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

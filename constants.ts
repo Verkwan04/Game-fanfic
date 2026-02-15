@@ -68,6 +68,15 @@ export const ARCHETYPES_3D = [
   }
 ];
 
+/** 命簿共 20 张信笺，对应 20 个结局；集齐后解锁「同人女使命达成」终极徽章 */
+export const TOTAL_ENDINGS = 20;
+export const ALL_ENDING_IDS: readonly string[] = [
+  "ending_peace", "ending_quit", "ending_cyber_bullying", "ending_jail", "ending_banned",
+  "ending_death", "ending_victory_hollow", "ending_god", "ending_2d_cold_circle", "ending_2d_author_legal",
+  "ending_2d_burnout", "ending_2d_circle_elders", "ending_2d_controversy_quit", "ending_2d_rebirth",
+  "ending_3d_peace", "ending_3d_legal", "ending_3d_reflect", "ending_3d_lifelong_fan", "ending_3d_frontline_retire"
+];
+
 export const EVENTS: Record<string, GameEvent> = {
   // --- STAGE 0: 选择世界 ---
   "start": {
@@ -116,17 +125,17 @@ export const EVENTS: Record<string, GameEvent> = {
 
   "intro_after_lottery": {
     id: "intro_after_lottery",
-    text: "拿着你的人设卡，你正式入坑了最近大火的IP《XXX》。首页全是神仙打架，你的CP正处于热恋期（指粉丝脑补）。看着这些绝美粮仓，你体内的创作之魂按捺不住了。",
+    text: "拿着你的人设卡，你正式入坑了最近大火的IP《XXX》。首页全是神仙打架，你的CP正处于热恋期（指粉丝脑补）。看着这些绝美粮仓，你体内的创作之魂按捺不住了。你决定先从哪里入手？",
     choices: [
       {
         text: "我是画手，我要用板子说话！",
-        nextEventId: "stage2_art_topic",
+        nextEventId: "stage2_entry_art",
         effects: { creativity: 5, stress: 5 },
         description: "进入绘圈，靠视觉冲击吸粉"
       },
       {
         text: "我是写手，我要用文字造梦！",
-        nextEventId: "stage2_fic_topic",
+        nextEventId: "stage2_entry_fic",
         effects: { creativity: 5, stress: 5 },
         description: "进入文圈，靠剧情与XP吸粉"
       }
@@ -135,7 +144,10 @@ export const EVENTS: Record<string, GameEvent> = {
       "欢迎新人入坑！只要你磕XX我们就是异父异母的亲姐妹！",
       "垂直入坑，这就是天堂吗？粮多到吃不过来，孩子已经撑死了。",
       "大大饿饿饭饭，前面的别挤，让我先舔一口！",
-      "虽然是冷圈难民，但看到新入坑的姐妹还是留下了激动的泪水。"
+      "虽然是冷圈难民，但看到新入坑的姐妹还是留下了激动的泪水。",
+      "新人？先报CP不杀（狗头）",
+      "刚入坑+1，首页刷了三天了根本停不下来",
+      "姐妹哪里来的，贴贴！"
     ]
   },
 
@@ -167,7 +179,10 @@ export const EVENTS: Record<string, GameEvent> = {
       "签售名额抢到了！姐妹们我们现场见！",
       "理性追星，快乐生活，不给自己也不给偶像添堵。",
       "私生biss，离艺人私生活远一点。",
-      "又有人跟机了，真的别给正主招黑好吗。"
+      "又有人跟机了，真的别给正主招黑好吗。",
+      "刚入坑，请问有什么需要注意的吗",
+      "量力而行，别贷款追星",
+      "今天也是为绝美爱情流泪的一天"
     ]
   },
 
@@ -263,15 +278,35 @@ export const EVENTS: Record<string, GameEvent> = {
     choices: [
       {
         text: "满足离场，以后继续理性支持",
-        nextEventId: "stage3d_fandom_deep",
+        nextEventId: "stage3d_signing_after",
         effects: { trust: 15, stress: -10 },
         description: "健康追星带来正向体验"
+      },
+      {
+        text: "做够了，想体面收山",
+        condition: (s) => s.popularity >= 40,
+        nextEventId: "ending_3d_frontline_retire",
+        effects: {},
+        description: "站姐/前线收山"
       }
     ],
     fixedComments: [
       "今天好开心，正主真的好温柔！",
       "理性追星才能走得长远，共勉。",
       "签售秩序靠大家，今天体验满分。"
+    ]
+  },
+
+  "stage3d_signing_after": {
+    id: "stage3d_signing_after",
+    text: "签售结束后的几天，你还在回味那几秒钟的对视和签名。你决定：是继续深入粉圈做数据、应援，还是就保持这样偶尔支持？",
+    choices: [
+      { text: "深入粉圈，做数据、反黑、应援", nextEventId: "stage3d_fandom_deep", effects: { popularity: 10 }, description: "更多参与" }
+    ],
+    fixedComments: [
+      "签售后遗症+1，根本走不出来",
+      "下次还抢！",
+      "理性消费，快乐追星。"
     ]
   },
 
@@ -402,13 +437,10 @@ export const EVENTS: Record<string, GameEvent> = {
 
   "stage3d_ending_healthy": {
     id: "stage3d_ending_healthy",
-    text: "你坚持理性追星、合规应援。签售会排队、反黑只反造谣、账目公开透明。虽然没能“一夜暴富”或“越界刺激”，但你和同好们一起创造了健康、长久的追星环境。这才是可持续的热爱。",
+    text: "你坚持理性追星、合规应援。签售会排队、反黑只反造谣、账目公开透明。虽然没能“一夜暴富”或“越界刺激”，但你和同好们一起创造了健康、长久的追星环境。你打算怎么为这段旅程画上句号？",
     choices: [
-      {
-        text: "（进入结局）",
-        nextEventId: "ending_3d_peace",
-        effects: {}
-      }
+      { text: "理性长存，满足离场", nextEventId: "ending_3d_peace", effects: {} },
+      { text: "我要一辈子支持TA，一生推", nextEventId: "ending_3d_lifelong_fan", effects: {} }
     ],
     fixedComments: []
   },
@@ -441,6 +473,32 @@ export const EVENTS: Record<string, GameEvent> = {
     poem: "辱追网暴皆成空，幡然醒悟未为迟。\n人言善恶终有报，理性发声方长久。"
   },
 
+  // --- 2D 桥接（保证至少 10 轮选择）---
+  "stage2_entry_art": {
+    id: "stage2_entry_art",
+    text: "板子连上了，笔刷调好了。你盯着空白画布深吸一口气——第一张图，将决定大家对你的第一印象。",
+    choices: [
+      { text: "开画！用实力说话", nextEventId: "stage2_art_topic", effects: {}, description: "进入风格选择" }
+    ],
+    fixedComments: [
+      "新人吗？画风好干净！",
+      "先别急着开车，把人体练稳了再说hhh",
+      "饿饿饭饭！"
+    ]
+  },
+  "stage2_entry_fic": {
+    id: "stage2_entry_fic",
+    text: "文档打开了，光标在闪。你敲下第一个标题——第一篇文，将决定你在圈里的起点。",
+    choices: [
+      { text: "开写！用故事说话", nextEventId: "stage2_fic_topic", effects: {}, description: "进入题材选择" }
+    ],
+    fixedComments: [
+      "新人写手！蹲了！",
+      "别坑啊姐妹，冷圈就指望你了",
+      "先更完再说话（不是"
+    ]
+  },
+
   // --- STAGE 2: STYLE & TOPIC ---
   "stage2_art_topic": {
     id: "stage2_art_topic",
@@ -463,7 +521,10 @@ export const EVENTS: Record<string, GameEvent> = {
       "这种画风我真的爱了，感觉像是吃了两斤糖一样甜！",
       "虽然但是，这个人体是不是有点奇怪？建议大大再练练基础。",
       "我不穿裤子是我不礼貌吗？这种好东西也是我能免费看的？",
-      "求求了别搞这种阴间玩意儿，我们CP是纯爱好吗？"
+      "求求了别搞这种阴间玩意儿，我们CP是纯爱好吗？",
+      "草，点开前没想到这么香",
+      "楼上+1，人体可以再练练但氛围感绝了",
+      "已存图，谢谢菩萨"
     ]
   },
 
@@ -488,7 +549,10 @@ export const EVENTS: Record<string, GameEvent> = {
       "这种神仙文笔是真实存在的吗？感觉比原著还要还原！",
       "大大好会写，每一个字都踩在我的XP上，幻肢痛了。",
       "虽然很带感，但是这也太OOC了吧，我的纸片人不会做这种事。",
-      "蹲一个后续，卡在这里是人干的事吗？孩子要枯萎了。"
+      "蹲一个后续，卡在这里是人干的事吗？孩子要枯萎了。",
+      "半夜刷到，不睡了，等更",
+      "OOC是OOC但香也是真的香……我叛变了",
+      "求求别坑，冷圈就指着你这口粮了"
     ]
   },
 
@@ -555,7 +619,10 @@ export const EVENTS: Record<string, GameEvent> = {
       "啊啊啊大大好温柔，每一条都回复了，这是什么神仙！",
       "虽然我不磕这对，但是大大的画风真的好绝，入坑了！",
       "KY退散！在别人底下刷逆家CP的有没有家教啊？",
-      "有一说一，感觉剧情有点平淡，没有上一篇好看了。"
+      "有一说一，感觉剧情有点平淡，没有上一篇好看了。",
+      "大大什么时候再更，搬小板凳等",
+      "不磕但收藏了，画风太舒服了",
+      "上面那个ky的删了吧看着碍眼"
     ]
   },
 
@@ -601,7 +668,10 @@ export const EVENTS: Record<string, GameEvent> = {
       "卧槽这是不花钱能看的吗？博主你是我的神！",
       "姐妹快删！被挂了！那种专门举报的蛆闻着味儿就来了！",
       "已举报，不谢。搞这种淫秽色情也不怕进去踩缝纫机？",
-      "求补档！来晚了只看到了一辆法拉利的尾气呜呜呜！"
+      "求补档！来晚了只看到了一辆法拉利的尾气呜呜呜！",
+      "存了，感恩",
+      "评论区某些人真是又当又立，笑死",
+      "菩萨渡我！！！"
     ]
   },
 
@@ -726,6 +796,12 @@ export const EVENTS: Record<string, GameEvent> = {
         nextEventId: "stage7_crisis_relevance",
         effects: { creativity: 10, legal: 10, money: 200 },
         description: "合法路线，可能走向细水长流"
+      },
+      {
+        text: "现在就投稿/签约试试",
+        nextEventId: "stage6_author_submit",
+        effects: { legal: 10 },
+        description: "尝试同人转正"
       }
     ],
     fixedComments: [
@@ -735,13 +811,26 @@ export const EVENTS: Record<string, GameEvent> = {
     ]
   },
 
+  "stage6_author_submit": {
+    id: "stage6_author_submit",
+    text: "你整理了作品集，投给了出版社/平台。经过几轮修改与签约流程，你的名字终于印在了书脊上。你从同人太太，成了有署名的正规作者。",
+    choices: [
+      { text: "（进入结局）", nextEventId: "ending_2d_author_legal", effects: {} }
+    ],
+    fixedComments: [
+      "恭喜大大转正！",
+      "同人转正真的不容易，瑞思拜。",
+      "以后书店能买到了！"
+    ]
+  },
+
   "stage6_legal_manage": {
     id: "stage6_legal_manage",
-    text: "你开了同人小铺或经营账号：只卖自己拥有版权的作品/授权周边，明码标价、依法纳税。虽然赚得不如灰色多，但不用提心吊胆，粉丝也更信任你。",
+    text: "你开了同人小铺或经营账号：只卖自己拥有版权的作品/授权周边，明码标价、依法纳税。虽然赚得不如灰色多，但不用提心吊胆，粉丝也更信任你。日子一天天过，你打算就这样走下去。",
     choices: [
       {
         text: "稳健经营，细水长流",
-        nextEventId: "ending_peace",
+        nextEventId: "stage6_shop_finale",
         effects: { money: 500, trust: 15, legal: 10 },
         description: "合规经营导向好结局"
       }
@@ -753,7 +842,19 @@ export const EVENTS: Record<string, GameEvent> = {
     ]
   },
 
-  // --- STAGE 6: MID-GAME HUB (THE GRIND) ---
+  "stage6_shop_finale": {
+    id: "stage6_shop_finale",
+    text: "小铺/账号运转平稳，没有爆红也没有暴雷。你每天回复留言、打包发货，偶尔摸鱼产粮。这份平衡，就是你想要的生活。",
+    choices: [
+      { text: "（进入结局）", nextEventId: "ending_peace", effects: {} }
+    ],
+    fixedComments: [
+      "大大还在更吗？等一个上新！",
+      "买过好几次了，质量稳的。",
+      "理性消费，快乐支持。"
+    ]
+  },
+
   "stage6_mid_game_grind": {
     id: "stage6_mid_game_grind",
     text: "你为了维持热度，开始了地狱般的赶稿生活。日更三千，周更两张。你的手腕开始剧痛，心脏也偶尔早搏。",
@@ -861,7 +962,7 @@ export const EVENTS: Record<string, GameEvent> = {
     choices: [
       {
         text: "立刻去医院，彻底断网休养",
-        nextEventId: "ending_peace",
+        nextEventId: "stage7_after_health",
         effects: { stress: -50, popularity: -20 },
         description: "放弃名利，保住小命"
       },
@@ -885,6 +986,20 @@ export const EVENTS: Record<string, GameEvent> = {
       "熬夜真的会死人的，大家都要注意身体啊。",
       "为了搞同人把命搭进去，真的值得吗？",
       "虽然很遗憾，但还是身体最重要，大大好好休息！"
+    ]
+  },
+
+  "stage7_after_health": {
+    id: "stage7_after_health",
+    text: "从医院出来，医生勒令你休息至少三个月。你关掉所有推送，不再看点赞和评论。一段时间后，你发现：有的身体恢复了，但创作欲再也回不来了；有的慢慢找回了手感，决定换一种节奏活。",
+    choices: [
+      { text: "休养后慢慢恢复，细水长流", nextEventId: "ending_peace", effects: {} },
+      { text: "算了，再也画/写不动了，燃尽退场", nextEventId: "ending_2d_burnout", effects: {} }
+    ],
+    fixedComments: [
+      "身体第一位，大大好好养！",
+      "能回来就回来，回不来也别勉强。",
+      "同人只是生活一部分，不是全部。"
     ]
   },
 
@@ -919,7 +1034,7 @@ export const EVENTS: Record<string, GameEvent> = {
     choices: [
       {
         text: "发长文道歉，然后销号退圈",
-        nextEventId: "ending_quit",
+        nextEventId: "ending_2d_controversy_quit",
         effects: { stress: 20 },
         description: "虽然输了，但至少结束了痛苦"
       },
@@ -936,6 +1051,13 @@ export const EVENTS: Record<string, GameEvent> = {
         nextEventId: "ending_cyber_bullying",
         effects: { stress: 100 },
         description: "没钱没势，被口水淹没"
+      },
+      {
+        text: "退出纷争，只做圈内和事佬",
+        condition: (s) => s.trust >= 50,
+        nextEventId: "ending_2d_circle_elders",
+        effects: {},
+        description: "不站队，只劝和，赢得尊重"
       }
     ],
     fixedComments: [
@@ -952,13 +1074,13 @@ export const EVENTS: Record<string, GameEvent> = {
     choices: [
       {
         text: "接受现实，用爱发电，只为自己而作",
-        nextEventId: "ending_peace",
+        nextEventId: "stage7_cold_or_peace",
         effects: { creativity: 20, popularity: -20 },
         description: "回归初心，获得内心的宁静"
       },
       {
         text: "不甘心！蹭热度，搞营销，买粉！",
-        nextEventId: "ending_banned", // Usually leads to desperate moves
+        nextEventId: "stage7_desperate",
         effects: { money: -500, legal: -10 },
         description: "为了流量不择手段，最终玩火自焚"
       }
@@ -968,6 +1090,34 @@ export const EVENTS: Record<string, GameEvent> = {
       "爬墙了爬墙了，新墙头太香了，对不起大大。",
       "还在坚持产粮的都是活菩萨，且看且珍惜吧。",
       "感觉这个号已经卖了吧？全是广告，取关了。"
+    ]
+  },
+
+  "stage7_cold_or_peace": {
+    id: "stage7_cold_or_peace",
+    text: "你不再盯着数据，只为自己和少数同好而写/画。有人选择彻底躺平做冷圈守墓人，有人慢慢找回节奏、细水长流。",
+    choices: [
+      { text: "细水长流，偶尔产粮", nextEventId: "ending_peace", effects: {} },
+      { text: "留在冷圈，守坑到老", nextEventId: "ending_2d_cold_circle", effects: {} }
+    ],
+    fixedComments: [
+      "冷圈人抱紧！",
+      "为爱发电yyds。",
+      "不火也没关系，我们记得你。"
+    ]
+  },
+
+  "stage7_desperate": {
+    id: "stage7_desperate",
+    text: "你不甘心过气，开始买粉、蹭热度、搞营销。结果账号被判定违规，一夜清零。你站在废墟前：是认栽退场，还是开小号转世再来？",
+    choices: [
+      { text: "认了，赛博失语", nextEventId: "ending_banned", effects: {} },
+      { text: "开小号，转世重生", nextEventId: "ending_2d_rebirth", effects: {} }
+    ],
+    fixedComments: [
+      "买粉真的会被清……",
+      "小号见姐妹。",
+      "从头再来也需要勇气。"
     ]
   },
 
@@ -1044,5 +1194,71 @@ export const EVENTS: Record<string, GameEvent> = {
     isEnding: true,
     endingTitle: "结局：细水长流",
     poem: "平平淡淡才是真，偶向闲窗写旧因。\n不求闻达于诸侯，自有一方自在身。"
+  },
+
+  // ========== 额外 9 个结局（凑齐命簿 20 张）==========
+  "ending_2d_cold_circle": {
+    id: "ending_2d_cold_circle",
+    text: "【结局：冷圈守墓人】\n热度散去，你选择留在冷圈。没人催更、没人吵架，只有零星几个同好互相点赞。你为爱发电，守着这个坑直到最后一刻。也许某天会有人考古发现你，也许不会——但你不后悔。",
+    choices: [],
+    isEnding: true,
+    endingTitle: "结局：冷圈守墓人",
+    poem: "冷圈无人问津处，独守一坑到白头。\n为爱发电终不悔，他年或有人考古。"
+  },
+  "ending_2d_author_legal": {
+    id: "ending_2d_author_legal",
+    text: "【结局：正规作者出道】\n你坚持走正规出版与版权流程，作品终于通过出版社或平台签约。你从“同人太太”变成了“有署名的作者”。虽然再也不能随意开车，但你的名字印在了书脊上，这是你应得的。",
+    choices: [],
+    isEnding: true,
+    endingTitle: "结局：正规作者出道",
+    poem: "同人转正路漫漫，书脊有名心始安。\n合规创作终有报，笔下有根亦有源。"
+  },
+  "ending_2d_burnout": {
+    id: "ending_2d_burnout",
+    text: "【结局：燃尽退场】\n从医院出来之后，你再也提不起笔。不是不爱了，是身体和情绪都撑不住了。你悄悄清空了主页，没有告别，也没有解释。就像一根蜡烛，烧到了尽头，只留下一缕青烟。",
+    choices: [],
+    isEnding: true,
+    endingTitle: "结局：燃尽退场",
+    poem: "蜡炬成灰泪始干，悄然离场无留言。\n非是不爱是无力，青烟散尽各平安。"
+  },
+  "ending_2d_circle_elders": {
+    id: "ending_2d_circle_elders",
+    text: "【结局：圈内元老】\n你没有站队、没有霸凌，反而在几次风波里帮过小透明、劝过架。多年后，你成了大家口中的“老好人太太”，新人入圈都会来问你规矩。你没有爆红，但赢得了尊重。",
+    choices: [],
+    isEnding: true,
+    endingTitle: "结局：圈内元老",
+    poem: "不站队来不霸凌，仗义执言留清名。\n新人入圈问规矩，元老未必最红人。"
+  },
+  "ending_2d_controversy_quit": {
+    id: "ending_2d_controversy_quit",
+    text: "【结局：争议退场】\n你发了长文道歉，把来龙去脉说清楚，然后销号退圈。有人骂你洗白，有人觉得你至少敢认。你不想再争了，只想回到没有热搜和挂人的日子。",
+    choices: [],
+    isEnding: true,
+    endingTitle: "结局：争议退场",
+    poem: "长文道歉后销号，是非留与众人论。\n不争不辩归平淡，从此热搜是路人。"
+  },
+  "ending_2d_rebirth": {
+    id: "ending_2d_rebirth",
+    text: "【结局：转世重生】\n大号没了，你换了个小号重头再来。不蹭旧名、不提前世，就当新人。虽然从零开始很累，但至少还能写、还能画。同人女的灵魂，换一身皮也能活。",
+    choices: [],
+    isEnding: true,
+    endingTitle: "结局：转世重生",
+    poem: "大号成灰小号生，不提前世不蹭名。\n从零开始虽辛苦，换皮犹可续前缘。"
+  },
+  "ending_3d_lifelong_fan": {
+    id: "ending_3d_lifelong_fan",
+    text: "【结局：一生推】\n你决定就这样一直喜欢下去。签售会去、专辑买、数据做，不越界、不辱追、不私生。你不求回报，只求TA越来越好。这份喜欢，你打算坚持一辈子。",
+    choices: [],
+    isEnding: true,
+    endingTitle: "结局：一生推",
+    poem: "签售专辑与数据，不越雷池不辱追。\n但求正主步步高，一生推到底不悔。"
+  },
+  "ending_3d_frontline_retire": {
+    id: "ending_3d_frontline_retire",
+    text: "【结局：站姐体面收山】\n你曾经扛着大炮跑前线，出图修图一条龙。后来你发现身体和钱包都撑不住了，于是把设备出掉、把账号交给同好，体面收山。你从“站姐”变成了“偶尔买专的散粉”，但回忆里全是高光。",
+    choices: [],
+    isEnding: true,
+    endingTitle: "结局：站姐体面收山",
+    poem: "曾扛大炮跑前线，今朝收山做散粉。\n设备出尽账号在，回忆满屏是青春。"
   }
 };
