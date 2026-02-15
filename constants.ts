@@ -39,17 +39,76 @@ export const ARCHETYPES = [
   }
 ];
 
+// 三次元世界人设（追星/偶像圈）
+export const ARCHETYPES_3D = [
+  {
+    name: "【理性散粉】",
+    desc: "有固定本命，但生活重心在三次元。追星量力而行，不接机不蹲酒店，签售随缘。法律与边界感强。",
+    stats: { money: 2000, creativity: 20, legal: 85, eq: 70, stress: 10, popularity: 5, trust: 80 }
+  },
+  {
+    name: "【站姐/前线】",
+    desc: "扛大炮跑活动，出图快修图美，在粉圈有话语权。但容易卷入代拍、私生争议，边界一旦模糊就有风险。",
+    stats: { money: 1500, creativity: 60, legal: 50, eq: 50, stress: 40, popularity: 60, trust: 40 }
+  },
+  {
+    name: "【富婆粉】",
+    desc: "专辑成箱买、代言冲销量、签售场场到。用钱铺路，容易获得官方或后援会重视，但也可能被当韭菜或卷入集资争议。",
+    stats: { money: 15000, creativity: 15, legal: 55, eq: 45, stress: 20, popularity: 30, trust: 50 }
+  },
+  {
+    name: "【后援会骨干】",
+    desc: "做数据、搞应援、组织活动。权力与责任并存，一旦涉及集资、账目不清或引导骂战，可能害人害己。",
+    stats: { money: 1000, creativity: 30, legal: 60, eq: 55, stress: 50, popularity: 50, trust: 35 }
+  },
+  {
+    name: "【易上头型粉丝】",
+    desc: "容易因为一条黑评就冲上去对线，或因为想见真人而心动跟机、蹲酒店。法律意识薄弱，需要时刻提醒自己边界。",
+    stats: { money: 500, creativity: 25, legal: 25, eq: 30, stress: 35, popularity: 20, trust: 25 }
+  }
+];
+
 export const EVENTS: Record<string, GameEvent> = {
-  // --- STAGE 1: ORIGIN ---
+  // --- STAGE 0: 选择世界 ---
   "start": {
     id: "start",
-    text: "欢迎来到《同人女模拟器》。\n\n这是一个关于爱、欲望与生存的游戏。在这里，你可能是神仙太太，也可能是人人喊打的过街老鼠。在这个充满戾气与热爱的互联网夹缝中，你能坚持多久？\n\n首先，请抽取你的【初始人设】。",
+    text: "欢迎来到《同人女模拟器》。\n\n这是一个关于热爱、边界与选择的游戏。你可以沉浸在二次元的同人创作里，也可以走进三次元的追星与线下世界。无论哪条路，都会面临诱惑、压力与道德的考验。\n\n请先选择你要体验的【世界】。",
     choices: [
       {
-        text: "开始抽签 (听天由命)",
+        text: "【二次元】同人创作 · 出本 · 绘圈/文圈",
+        nextEventId: "start_2d",
+        description: "创作、经营、参展与法律红线"
+      },
+      {
+        text: "【三次元】追星 · 签售 · 线下 · 粉丝文化",
+        nextEventId: "start_3d",
+        description: "签售、应援、理性与越界"
+      }
+    ],
+    fixedComments: []
+  },
+
+  "start_2d": {
+    id: "start_2d",
+    text: "你选择了【二次元】世界。在这里，你将体验同人创作、出本、经营账号或小铺，在绘圈/文圈中沉浮。\n\n接下来，请抽取你的【初始人设】——它将决定你的财力、创作力与抗压能力。",
+    choices: [
+      {
+        text: "开始抽签（听天由命）",
         nextEventId: "init_lottery",
-        effects: {},
-        description: "决定你的出身、天赋与抗压能力"
+        description: "决定你的出身与天赋"
+      }
+    ],
+    fixedComments: []
+  },
+
+  "start_3d": {
+    id: "start_3d",
+    text: "你选择了【三次元】世界。在这里，你将体验追星、签售会、线下应援与粉丝圈的复杂生态。理性与越界往往只有一线之隔。\n\n接下来，请抽取你的【初始人设】——它将影响你在粉圈中的位置与选择。",
+    choices: [
+      {
+        text: "开始抽签（听天由命）",
+        nextEventId: "init_lottery_3d",
+        description: "决定你的追星风格与底线"
       }
     ],
     fixedComments: []
@@ -78,6 +137,308 @@ export const EVENTS: Record<string, GameEvent> = {
       "大大饿饿饭饭，前面的别挤，让我先舔一口！",
       "虽然是冷圈难民，但看到新入坑的姐妹还是留下了激动的泪水。"
     ]
+  },
+
+  // ========== 三次元线：追星 / 签售 / 辱追 / 私生（教化向） ==========
+  "intro_after_lottery_3d": {
+    id: "intro_after_lottery_3d",
+    text: "你入坑了当下大火的偶像/演员。官宣了签售会、演唱会与代言，粉圈一片沸腾。你想怎样参与这场追星之旅？",
+    choices: [
+      {
+        text: "【理性参与】买专辑、有机会就去签售，不越界",
+        nextEventId: "stage3d_signing_choice",
+        effects: { legal: 5, eq: 5, trust: 5 },
+        description: "健康追星，量力而行"
+      },
+      {
+        text: "【深度参与】加入后援会、做数据、跑线下",
+        nextEventId: "stage3d_fandom_deep",
+        effects: { popularity: 15, stress: 10 },
+        description: "投入时间与精力，注意边界"
+      },
+      {
+        text: "【危险试探】想试试跟机/蹲酒店/买行程……",
+        nextEventId: "stage3d_sasaeng_warning",
+        effects: { legal: -15, eq: -10 },
+        description: "越界行为，将面临道德与法律风险"
+      }
+    ],
+    fixedComments: [
+      "签售名额抢到了！姐妹们我们现场见！",
+      "理性追星，快乐生活，不给自己也不给偶像添堵。",
+      "私生biss，离艺人私生活远一点。",
+      "又有人跟机了，真的别给正主招黑好吗。"
+    ]
+  },
+
+  "stage3d_sasaeng_warning": {
+    id: "stage3d_sasaeng_warning",
+    text: "【重要提醒】跟机、蹲酒店、购买或泄露艺人行程，属于侵犯隐私、扰乱公共秩序，可能触犯法律，且会伤害艺人本人与行业风气。游戏内将此类选择设计为高风险路线，旨在让玩家体会后果，请勿在现实中模仿。\n\n你仍然可以选择：回头是岸，或一意孤行（后果自负）。",
+    choices: [
+      {
+        text: "我知错了，改为理性追星",
+        nextEventId: "stage3d_signing_choice",
+        effects: { legal: 10, eq: 10 },
+        description: "回归理性，尊重边界"
+      },
+      {
+        text: "我就要试试（体验后果）",
+        nextEventId: "stage3d_sasaeng_path",
+        effects: { legal: -20, trust: -20 },
+        description: "高风险路线：私生行为将导向负面结局"
+      }
+    ],
+    fixedComments: [
+      "能意识到就不晚，理性追星对自己和偶像都好。",
+      "现实中这样真的会被告的，别学。",
+      "游戏里体验一下后果就好，千万别当真。"
+    ]
+  },
+
+  "stage3d_sasaeng_path": {
+    id: "stage3d_sasaeng_path",
+    text: "你搞到了“内部行程”，跟了航班，在酒店大堂蹲到凌晨。你拍到了别人拍不到的画面，在粉圈里一时风头无两，但也有人开始骂你私生、给正主招黑。随后，你发现自己的行为被挂上了反黑站，甚至有人报警。",
+    choices: [
+      {
+        text: "立刻收手，公开道歉并删除偷拍内容",
+        nextEventId: "stage3d_after_sasaeng_quit",
+        effects: { legal: 5, popularity: -30, stress: 20 },
+        description: "及时止损，承担舆论后果"
+      },
+      {
+        text: "不认错，继续跟",
+        nextEventId: "ending_3d_legal",
+        effects: { legal: -30 },
+        description: "执迷不悟，面临法律与社死"
+      }
+    ],
+    fixedComments: [
+      "私生不是粉，离艺人生活远一点。",
+      "挂反黑站了，这种真的该报警。",
+      "游戏里体验一下就好，现实里千万别学。"
+    ]
+  },
+
+  "stage3d_after_sasaeng_quit": {
+    id: "stage3d_after_sasaeng_quit",
+    text: "你删除了偷拍内容并道歉，但口碑已经崩了。很多人取关、脱粉，你也上了不少人的“避雷”名单。你决定以后只远远支持，不再越界。",
+    choices: [
+      {
+        text: "重新开始，只参加正规签售与活动",
+        nextEventId: "stage3d_signing_choice",
+        effects: { trust: 5, stress: -10 },
+        description: "用正确的方式继续喜欢"
+      }
+    ],
+    fixedComments: []
+  },
+
+  "stage3d_signing_choice": {
+    id: "stage3d_signing_choice",
+    text: "偶像的签售会即将举办。正规渠道抢票、排队、遵守秩序，是健康追星的一部分。你打算如何参与？",
+    choices: [
+      {
+        text: "【抢票参与】量力而行，抢到就去，抢不到就下次",
+        nextEventId: "stage3d_signing_event",
+        effects: { eq: 5, stress: -5 },
+        description: "理性参与签售"
+      },
+      {
+        text: "【高价收票】特别想去，考虑黄牛/高价收",
+        nextEventId: "stage3d_signing_risky",
+        effects: { money: -500, legal: -5 },
+        description: "可能助长黄牛，且存在诈骗风险"
+      }
+    ],
+    fixedComments: [
+      "签售会排队好长但是秩序很好，大家都很有素质。",
+      "抵制黄牛，从你我做起。",
+      "能见一面就很开心了，不要越界。"
+    ]
+  },
+
+  "stage3d_signing_event": {
+    id: "stage3d_signing_event",
+    text: "签售会当天，你排队入场，遵守秩序。轮到你时，你和偶像有了短暂的交流与签名。你发现，在规则之内支持，反而更安心、更长久。",
+    choices: [
+      {
+        text: "满足离场，以后继续理性支持",
+        nextEventId: "stage3d_fandom_deep",
+        effects: { trust: 15, stress: -10 },
+        description: "健康追星带来正向体验"
+      }
+    ],
+    fixedComments: [
+      "今天好开心，正主真的好温柔！",
+      "理性追星才能走得长远，共勉。",
+      "签售秩序靠大家，今天体验满分。"
+    ]
+  },
+
+  "stage3d_signing_risky": {
+    id: "stage3d_signing_risky",
+    text: "你通过非官方渠道高价买了票。到了现场才发现是假票，钱打了水漂。有人提醒：签售务必走官方渠道，抵制黄牛、谨防诈骗。",
+    choices: [
+      {
+        text: "吃一堑长一智，以后只走官方",
+        nextEventId: "stage3d_fandom_deep",
+        effects: { legal: 5, eq: 5 },
+        description: "吸取教训"
+      }
+    ],
+    fixedComments: [
+      "黄牛和骗子太多了，大家一定要走官方！",
+      "心疼姐妹，下次一定官方见。"
+    ]
+  },
+
+  "stage3d_fandom_deep": {
+    id: "stage3d_fandom_deep",
+    text: "你深入了粉圈：做数据、反黑、有时和别家或黑子对线。你发现圈子里还有一种人——“辱追”：以攻击、嘲讽自家或对家偶像为乐，到处引战。有人拉你一起“辱追”找乐子。",
+    choices: [
+      {
+        text: "拒绝，不参与辱追与人身攻击",
+        nextEventId: "stage3d_manage_or_peace",
+        effects: { eq: 10, legal: 5, trust: 10 },
+        description: "保持理性，不越界"
+      },
+      {
+        text: "有点心动，想试试骂几句“玩玩”",
+        nextEventId: "stage3d_ruzhui_warning",
+        effects: { eq: -5 },
+        description: "辱追会败坏风气，可能涉及网暴"
+      }
+    ],
+    fixedComments: [
+      "辱追真的恶心，不喜欢就别关注不行吗。",
+      "理性讨论可以，人身攻击和网暴不行。",
+      "反黑是反造谣，不是去骂人。"
+    ]
+  },
+
+  "stage3d_ruzhui_warning": {
+    id: "stage3d_ruzhui_warning",
+    text: "【提醒】“辱追”往往伴随人身攻击、造谣传谣与网络暴力，可能违反法律法规，也对艺人与粉丝群体造成伤害。游戏内设计此路线以呈现后果，请勿在现实中模仿。\n\n你仍可选择：收手，或继续（将导向负面结局）。",
+    choices: [
+      {
+        text: "不玩了，还是正常追星吧",
+        nextEventId: "stage3d_manage_or_peace",
+        effects: { eq: 10, trust: 5 },
+        description: "回归理性"
+      },
+      {
+        text: "继续（体验后果）",
+        nextEventId: "stage3d_ruzhui_path",
+        effects: { eq: -15, trust: -20 },
+        description: "高风险：可能涉及网暴与法律"
+      }
+    ],
+    fixedComments: []
+  },
+
+  "stage3d_ruzhui_path": {
+    id: "stage3d_ruzhui_path",
+    text: "你加入了辱追小团体，到处阴阳怪气、挂人、煽动骂战。起初你觉得“只是玩梗”，直到有人因你的言论被网暴，或你本人被挂上反黑站、收到律师函。",
+    choices: [
+      {
+        text: "立刻道歉、删博、退群",
+        nextEventId: "ending_3d_reflect",
+        effects: { stress: 30 },
+        description: "承担后果，反思收场"
+      },
+      {
+        text: "硬刚到底",
+        nextEventId: "ending_3d_legal",
+        effects: { legal: -20 },
+        description: "可能面临法律与社死"
+      }
+    ],
+    fixedComments: [
+      "辱追到最后没有赢家，只会一地鸡毛。",
+      "网暴犯法，别以为匿名就没事。",
+      "游戏里体验一下就好，现实里请理性。"
+    ]
+  },
+
+  "stage3d_manage_or_peace": {
+    id: "stage3d_manage_or_peace",
+    text: "你在粉圈里有了存在感。有人提议一起做周边、搞应援众筹，或经营后援会账目。这涉及金钱与信任，必须合法合规。",
+    choices: [
+      {
+        text: "【合规应援】账目公开、不非法集资、周边走正规授权",
+        nextEventId: "stage3d_ending_healthy",
+        effects: { trust: 20, legal: 10, money: 200 },
+        description: "健康经营，长久发展"
+      },
+      {
+        text: "【冒险捞一笔】私下收款、不开发票、卷款跑路……",
+        nextEventId: "stage3d_fraud_path",
+        effects: { money: 1000, legal: -30, trust: -40 },
+        description: "违法违纪，必遭反噬"
+      }
+    ],
+    fixedComments: [
+      "后援会账目一定要透明，不然说不清。",
+      "非法集资真的会进去的，别碰。",
+      "理性应援，快乐追星。"
+    ]
+  },
+
+  "stage3d_fraud_path": {
+    id: "stage3d_fraud_path",
+    text: "你通过后援会/周边名义收了大量款项，账目混乱，最后卷款消失。粉丝报警，你的信息被挂遍全网。等待你的是法律制裁与永久骂名。",
+    choices: [
+      {
+        text: "（接受结局）",
+        nextEventId: "ending_3d_legal",
+        effects: {}
+      }
+    ],
+    fixedComments: [
+      "非法集资、诈骗，该！",
+      "游戏里体验后果，现实里千万别碰。"
+    ]
+  },
+
+  "stage3d_ending_healthy": {
+    id: "stage3d_ending_healthy",
+    text: "你坚持理性追星、合规应援。签售会排队、反黑只反造谣、账目公开透明。虽然没能“一夜暴富”或“越界刺激”，但你和同好们一起创造了健康、长久的追星环境。这才是可持续的热爱。",
+    choices: [
+      {
+        text: "（进入结局）",
+        nextEventId: "ending_3d_peace",
+        effects: {}
+      }
+    ],
+    fixedComments: []
+  },
+
+  // 三次元专属结局
+  "ending_3d_peace": {
+    id: "ending_3d_peace",
+    text: "【结局：理性长存】\n你在三次元追星路上守住了边界。签售、应援、数据，都在规则之内。你没有因为越界而失去自由或口碑，也没有因为辱追或私生而伤害他人。这份喜欢，干净、长久、问心无愧。",
+    choices: [],
+    isEnding: true,
+    endingTitle: "结局：理性长存",
+    poem: "追星本为心头好，莫越雷池半步遥。\n签售应援皆有度，理性长存乐逍遥。"
+  },
+
+  "ending_3d_legal": {
+    id: "ending_3d_legal",
+    text: "【结局：越界之罚】\n私生、辱追、非法集资……你触碰了法律与道德的底线。传唤、立案、社死接踵而至。你本可以只做一名普通粉丝，却因一念之差万劫不复。愿你在游戏外，永远记得：热爱有边界。",
+    choices: [],
+    isEnding: true,
+    endingTitle: "结局：越界之罚",
+    poem: "一念越界千古恨，法律道德两不饶。\n热爱当有边界在，莫待铁窗空悔迟。"
+  },
+
+  "ending_3d_reflect": {
+    id: "ending_3d_reflect",
+    text: "【结局：幡然醒悟】\n你在辱追与网暴的边缘及时收手。虽然已经造成了一些伤害，但你选择道歉、反思、退圈。希望这份教训能让你在现实中也记住：不造谣、不网暴、理性发声。",
+    choices: [],
+    isEnding: true,
+    endingTitle: "结局：幡然醒悟",
+    poem: "辱追网暴皆成空，幡然醒悟未为迟。\n人言善恶终有报，理性发声方长久。"
   },
 
   // --- STAGE 2: STYLE & TOPIC ---
@@ -270,13 +631,19 @@ export const EVENTS: Record<string, GameEvent> = {
   // --- STAGE 5: RISING FAME & FAN CULTURE ---
   "stage5_rising_fame": {
     id: "stage5_rising_fame",
-    text: "经历了一波风浪，你在这个圈子站稳了脚跟，有了一批死忠粉。现在有一个热门活动“CP 24小时创作挑战”，你要参加吗？",
+    text: "经历了一波风浪，你在这个圈子站稳了脚跟，有了一批死忠粉。现在有一个热门活动“CP 24小时创作挑战”，也有人开始问你出不出本、搞不搞经营。",
     choices: [
       {
-        text: "参加！肝它个昏天黑地！",
+        text: "参加 24 小时挑战！肝它个昏天黑地！",
         nextEventId: "stage6_mid_game_grind",
         effects: { popularity: 20, stress: 15, creativity: -5 },
         description: "大幅提升知名度，但消耗精力"
+      },
+      {
+        text: "我想出本 / 经营——走正规还是走偏门？",
+        nextEventId: "stage6_publish_or_manage",
+        effects: {},
+        description: "出本、经营小铺，合法与风险一念之间"
       },
       {
         text: "太累了，还是摸鱼划水吧",
@@ -315,6 +682,74 @@ export const EVENTS: Record<string, GameEvent> = {
       "有一说一，给的实在太多了，换我我也接，恰饭嘛不寒碜。",
       "大失所望，原本以为你是有骨气的创作者，没想到也是向资本低头。",
       "黑粉滚啊，大大不吃饭喝西北风吗？你们给大大打钱了吗？"
+    ]
+  },
+
+  // --- 出本 / 经营分支（教化：合法 vs 非法）---
+  "stage6_publish_or_manage": {
+    id: "stage6_publish_or_manage",
+    text: "你想把创作变成实体或变现。出本可以走正规出版（申请书号、合法印制），也可以私印售卖（高收益但违法）；经营可以是合规小铺（授权、纳税），也可以是灰色地带。你的选择将决定结局。",
+    choices: [
+      {
+        text: "【正规出本】了解书号与合法印制流程，慢但安心",
+        nextEventId: "stage6_legal_publish",
+        effects: { legal: 15, stress: 5 },
+        description: "合法出版，长久发展"
+      },
+      {
+        text: "【合规经营】开同人小铺/账号，明码标价、不侵权不逃税",
+        nextEventId: "stage6_legal_manage",
+        effects: { legal: 10, trust: 10 },
+        description: "健康变现，可持续"
+      },
+      {
+        text: "【冒险】私印售卖 / 灰色经营，来钱快",
+        nextEventId: "stage6_mid_game_money",
+        effects: { legal: -10 },
+        description: "高收益高风险，可能触法"
+      }
+    ],
+    fixedComments: [
+      "正规出本虽然慢但不会被请喝茶，支持！",
+      "好多大大都是正规出版转正的，值得学习。",
+      "私印真的别搞，身边有人被查了。",
+      "经营的话记得开发票、别盗版。"
+    ]
+  },
+
+  "stage6_legal_publish": {
+    id: "stage6_legal_publish",
+    text: "你查了资料：正规出版需要申请书号、走出版社或具有资质的印制流程，内容也需符合出版法规。你决定先积累作品、再尝试投稿或合作出版。虽然慢，但心里踏实。",
+    choices: [
+      {
+        text: "继续创作，有机会再走正规出版",
+        nextEventId: "stage7_crisis_relevance",
+        effects: { creativity: 10, legal: 10, money: 200 },
+        description: "合法路线，可能走向细水长流"
+      }
+    ],
+    fixedComments: [
+      "正规出版才是长久之计，大大加油！",
+      "能走正规的都不容易，respect。",
+      "同人转正越来越多了，好事。"
+    ]
+  },
+
+  "stage6_legal_manage": {
+    id: "stage6_legal_manage",
+    text: "你开了同人小铺或经营账号：只卖自己拥有版权的作品/授权周边，明码标价、依法纳税。虽然赚得不如灰色多，但不用提心吊胆，粉丝也更信任你。",
+    choices: [
+      {
+        text: "稳健经营，细水长流",
+        nextEventId: "ending_peace",
+        effects: { money: 500, trust: 15, legal: 10 },
+        description: "合规经营导向好结局"
+      }
+    ],
+    fixedComments: [
+      "这种大大我爱了，买着放心。",
+      "合法经营才能走得远，支持。",
+      "希望圈子越来越多正规军。"
     ]
   },
 

@@ -33,10 +33,15 @@ export interface FateCard {
   timestamp: number;
 }
 
+/** 世界类型：二次元=同人创作圈，三次元=追星/偶像圈 */
+export type WorldType = '2d' | '3d';
+
 export interface GameState {
   currentEventId: string;
   attributes: Attributes;
   history: string[]; // List of event IDs visited
   isGameOver: boolean;
   activeFateCard: FateCard | null; // The card currently being shown at ending
+  /** 开局选择的世界，决定后续事件分支 */
+  worldType?: WorldType;
 }

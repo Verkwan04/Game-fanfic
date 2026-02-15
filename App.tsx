@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { GameState, Choice, Attributes, FateCard } from './types';
-import { INITIAL_STATS, EVENTS, ARCHETYPES } from './constants';
+import { INITIAL_STATS, EVENTS, ARCHETYPES, ARCHETYPES_3D } from './constants';
 import StatsPanel from './components/StatsPanel';
 import EventDisplay from './components/EventDisplay';
 import SaveLoadControls from './components/SaveLoadControls';
@@ -17,7 +17,8 @@ const App: React.FC = () => {
     attributes: { ...INITIAL_STATS },
     history: ['start'],
     isGameOver: false,
-    activeFateCard: null
+    activeFateCard: null,
+    worldType: undefined
   });
   
   const [hasSave, setHasSave] = useState(false);
@@ -82,20 +83,51 @@ const App: React.FC = () => {
   };
 
   const handleChoice = (choice: Choice) => {
-    // INTERCEPT: LOTTERY LOGIC
+    if (choice.nextEventId === 'start_2d') {
+      setGameState(prev => ({
+        ...prev,
+        currentEventId: 'start_2d',
+        history: [...prev.history, 'start_2d'],
+        worldType: '2d',
+        activeFateCard: null
+      }));
+      return;
+    }
+    if (choice.nextEventId === 'start_3d') {
+      setGameState(prev => ({
+        ...prev,
+        currentEventId: 'start_3d',
+        history: [...prev.history, 'start_3d'],
+        worldType: '3d',
+        activeFateCard: null
+      }));
+      return;
+    }
+
     if (choice.nextEventId === 'init_lottery') {
-        const randomArchetype = ARCHETYPES[Math.floor(Math.random() * ARCHETYPES.length)];
-        
-        setGameState(prev => ({
-            ...prev,
-            currentEventId: 'intro_after_lottery',
-            attributes: { ...randomArchetype.stats }, // Override stats
-            history: [...prev.history, 'intro_after_lottery'],
-            activeFateCard: null
-        }));
-        
-        alert(`【抽签结果】\n你抽到了：${randomArchetype.name}\n${randomArchetype.desc}`);
-        return;
+      const randomArchetype = ARCHETYPES[Math.floor(Math.random() * ARCHETYPES.length)];
+      setGameState(prev => ({
+        ...prev,
+        currentEventId: 'intro_after_lottery',
+        attributes: { ...randomArchetype.stats },
+        history: [...prev.history, 'intro_after_lottery'],
+        activeFateCard: null
+      }));
+      alert(`【抽签结果】\n你抽到了：${randomArchetype.name}\n${randomArchetype.desc}`);
+      return;
+    }
+
+    if (choice.nextEventId === 'init_lottery_3d') {
+      const randomArchetype = ARCHETYPES_3D[Math.floor(Math.random() * ARCHETYPES_3D.length)];
+      setGameState(prev => ({
+        ...prev,
+        currentEventId: 'intro_after_lottery_3d',
+        attributes: { ...randomArchetype.stats },
+        history: [...prev.history, 'intro_after_lottery_3d'],
+        activeFateCard: null
+      }));
+      alert(`【抽签结果】\n你抽到了：${randomArchetype.name}\n${randomArchetype.desc}`);
+      return;
     }
 
     const newStats = { ...gameState.attributes };
@@ -143,7 +175,8 @@ const App: React.FC = () => {
       attributes: { ...INITIAL_STATS },
       history: ['start'],
       isGameOver: false,
-      activeFateCard: null
+      activeFateCard: null,
+      worldType: undefined
     });
   };
 
@@ -215,15 +248,23 @@ const App: React.FC = () => {
             <ul className="space-y-3 list-none font-serif">
               <li className="flex items-start gap-2">
                 <span className="w-1.5 h-1.5 rounded-full bg-stone-400 mt-1.5"></span>
-                <span><b>人设抽签</b>：开局随机决定你的命运起点。</span>
+                <span><b>选世界</b>：二次元=同人创作/出本/经营，三次元=追星/签售/应援。</span>
               </li>
               <li className="flex items-start gap-2">
                 <span className="w-1.5 h-1.5 rounded-full bg-stone-400 mt-1.5"></span>
-                <span><b>收集命签</b>：达成不同结局，解锁命薄判词。</span>
+                <span><b>人设抽签</b>：随机决定你的起点与底线。</span>
               </li>
               <li className="flex items-start gap-2">
                 <span className="w-1.5 h-1.5 rounded-full bg-stone-400 mt-1.5"></span>
-                <span><b>请随时存档</b>：圈子险恶，一失足成千古恨。</span>
+                <span><b>合法与边界</b>：出本走正规、经营要合规；追星理性、不私生不辱追。</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="w-1.5 h-1.5 rounded-full bg-stone-400 mt-1.5"></span>
+                <span><b>收集命签</b>：达成多种结局，解锁命薄判词。</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="w-1.5 h-1.5 rounded-full bg-stone-400 mt-1.5"></span>
+                <span><b>请随时存档</b>：一念之差，结局天差地别。</span>
               </li>
             </ul>
           </div>
